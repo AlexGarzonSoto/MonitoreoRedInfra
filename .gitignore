@@ -2,9 +2,18 @@
 .vscode/
 .idea/
 *.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+*.eclipse
+nbproject/
+nb-configuration.xml
 
 # ── Claude Code ────────────────────────────────────────────────────────────
 CLAUDE.md
+.claude/
 
 # ── Maven / Java ───────────────────────────────────────────────────────────
 target/
@@ -12,22 +21,87 @@ target/
 *.jar
 *.war
 *.ear
+.mvn/wrapper/maven-wrapper.jar
+release.properties
+dependency-reduced-pom.xml
 
 # ── Variables de entorno (nunca subir al repo) ─────────────────────────────
 .env
+*.env.local
+*.env.*.local
+secrets/
 
 # ── Node / Frontend ────────────────────────────────────────────────────────
 node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/.cache/
+frontend/coverage/
+.npm/
+.pnp.*
+.yarn/
+
+# ── Python (herramientas DevSecOps: Semgrep, Checkov, Ansible) ─────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.tox/
+.pytest_cache/
+
+# ── Reportes de seguridad (generados, no deben versionarse) ────────────────
+**/dependency-check-report.*
+**/spotbugsXml.xml
+**/findbugs*.xml
+**/pmd*.xml
+**/checkstyle*.xml
+semgrep-report.json
+trivy-*.sarif
+trivy-*.json
+zap-report.*
+.zap/*.bak
+
+# ── Cobertura de pruebas ────────────────────────────────────────────────────
+**/target/site/jacoco/
+*.exec
+
+# ── Terraform / OpenTofu ───────────────────────────────────────────────────
+infrastructure/terraform/.terraform/
+infrastructure/terraform/.terraform.lock.hcl
+infrastructure/terraform/terraform.tfstate
+infrastructure/terraform/terraform.tfstate.backup
+infrastructure/terraform/*.tfvars
+infrastructure/terraform/override.tf
+infrastructure/terraform/override.tf.json
+
+# ── Ansible ────────────────────────────────────────────────────────────────
+infrastructure/ansible/vault_password
+infrastructure/ansible/*.retry
+infrastructure/ansible/inventory/hosts_generated
 
 # ── Logs ───────────────────────────────────────────────────────────────────
 *.log
 logs/
+spring.log
 
 # ── Docker ─────────────────────────────────────────────────────────────────
 # No excluir docker-compose.yml ni Dockerfiles
 
 # ── Sistema operativo ──────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Temporales y backups ────────────────────────────────────────────────────
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+*.orig

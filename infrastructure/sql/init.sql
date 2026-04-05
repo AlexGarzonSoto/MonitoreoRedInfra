@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_events_resolved
 -- ── Tabla: alerts ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS alerts (
     id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-    event_id          UUID         REFERENCES network_events (id) ON DELETE CASCADE,
+    event_id          UUID,   -- sin FK: network_events es hypertable (TimescaleDB no soporta FK a hypertables)
     title             VARCHAR(255) NOT NULL,
     details           TEXT,
     status            VARCHAR(20)  NOT NULL DEFAULT 'OPEN'

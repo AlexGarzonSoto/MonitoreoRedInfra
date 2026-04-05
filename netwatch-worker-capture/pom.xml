@@ -86,6 +86,15 @@
          ═══════════════════════════════════════════════════ -->
 
     <!--
+      Web: necesario para exponer /actuator/health vía HTTP.
+      Sin spring-boot-starter-web el servidor HTTP no arranca.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!--
       Actuator: expone /actuator/health para que Docker
       verifique que el worker está vivo.
       Sin esto, el healthcheck del docker-compose falla

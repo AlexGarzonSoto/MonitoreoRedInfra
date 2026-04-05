@@ -16,9 +16,10 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private NetworkEvent event;
+    // UUID directo (sin FK JPA): network_events es hypertable TimescaleDB
+    // y no soporta foreign key references convencionales
+    @Column(name = "event_id")
+    private UUID eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
