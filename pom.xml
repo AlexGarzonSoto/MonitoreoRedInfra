@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    BLOQUE PARENT: Hereda configuración de Spring Boot.
+    Esto hace que NO tengas que escribir las versiones de
+    las librerías de Spring en cada módulo. Spring Boot
+    ya tiene versiones compatibles predefinidas para todo.
+  -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.5</version>
+    <relativePath/>
+  </parent>
+
+  <!--
+    IDENTIDAD DEL PROYECTO PADRE.
+    groupId: es como el "apellido" de tu proyecto.
+             Convención: dominio invertido. Si no tienes
+             dominio, usa com.netwatch.
+    artifactId: nombre único del módulo. El padre se llama
+                netwatch-parent para diferenciarlo de los hijos.
+    version: versión del proyecto. 1.0.0 para el trabajo.
+    packaging: pom significa que este módulo NO genera un JAR.
+               Solo agrupa los módulos hijos.
+  -->
+  <groupId>com.netwatch</groupId>
+  <artifactId>netwatch-parent</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>NetWatch — Network Threat Monitoring System</name>
+  <description>Pipeline DevSecOps de ciclo completo</description>
+
+  <!--
+    MÓDULOS: Lista de microservicios que forman el proyecto.
+    Cuando ejecutas "mvn install" en la raíz, Maven compila
+    TODOS los módulos en el orden que los listas aquí.
+    Cada nombre debe coincidir exactamente con el nombre
+    de la carpeta donde está el pom.xml de ese módulo.
+  -->
+  <modules>
+    <module>netwatch-api-gateway</module>
+    <module>netwatch-worker-capture</module>
+    <module>netwatch-worker-analysis</module>
+    <module>netwatch-worker-alerts</module>
+    <module>netwatch-worker-osint</module>
+  </modules>
+
+  <!--
+    PROPERTIES: Variables que se usan en este POM y en todos
+    los hijos. Si necesitas cambiar la versión de jjwt,
+    la cambias aquí UNA sola vez y afecta a todos los módulos.
+  -->
+  <properties>
+    <java.version>21</java.version>
+    <jjwt.version>0.12.5</jjwt.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
+    <!-- Esta propiedad le dice a Maven que use UTF-8
+         para leer los archivos fuente. Sin esto, los
+         caracteres especiales como ñ o á pueden causar
+         errores de compilación. -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <!--
+    DEPENDENCY MANAGEMENT: Define versiones CENTRALIZADAS.
+    IMPORTANTE: Esto NO agrega las dependencias automáticamente
+    a los módulos. Solo define qué versión usar cuando un módulo
+    hijo declara esa dependencia SIN versión.
+    Ejemplo: si el gateway declara jjwt-api sin versión,
+    Maven busca aquí y encuentra 0.12.5.
+  -->
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- JWT: para generar y validar tokens de autenticación -->
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>${jjwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>${jjwt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-jackson</artifactId>
+        <version>${jjwt.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <!--
+    DEPENDENCIES: Estas SÍ se agregan automáticamente a
+    TODOS los módulos hijos. Úsalas solo para dependencias
+    verdaderamente universales.
+  -->
+  <dependencies>
+
+    <!--
+      Lombok: genera código repetitivo automáticamente.
+      Con @Data genera getters, setters, equals, hashCode.
+      Con @Builder genera el patrón builder.
+      Con @Slf4j agrega un logger sin escribirlo manualmente.
+      optional=true significa que Lombok solo se usa en
+      compilación, no se incluye en el JAR final.
+    -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!--
+      Spring Boot Test: incluye JUnit 5, Mockito y
+      AssertJ para las pruebas unitarias.
+      scope=test significa que solo se incluye cuando
+      ejecutas "mvn test", no en el JAR de producción.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <!--
+        SPOTBUGS + FIND SECURITY BUGS: Herramienta SAST.
+        Analiza el bytecode Java compilado buscando patrones
+        de vulnerabilidades de seguridad.
+        Find Security Bugs es un plugin adicional que agrega
+        reglas específicas de seguridad (inyección SQL,
+        XSS, criptografía débil, etc.)
+        El pipeline de GitHub Actions ejecuta:
+        mvn spotbugs:spotbugs
+        para generar el reporte XML que se sube como artefacto.
+      -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.8.3.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.h3xstream.findsecbugs</groupId>
+            <artifactId>findsecbugs-plugin</artifactId>
+            <version>1.13.0</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!-- Max = análisis más profundo, más lento -->
+          <effort>Max</effort>
+          <!-- Low = reporta hasta bugs de baja prioridad -->
+          <threshold>Low</threshold>
+          <!-- false = genera reporte pero no falla el build -->
+          <failOnError>false</failOnError>
+          <!-- Directorio de salida del reporte XML -->
+          <outputDirectory>${project.build.directory}</outputDirectory>
+        </configuration>
+      </plugin>
+
+      <!--
+        OWASP DEPENDENCY-CHECK: Herramienta SCA.
+        Analiza todas las dependencias del proyecto (JARs)
+        contra la base de datos de vulnerabilidades conocidas
+        del NIST (NVD). Si una librería tiene un CVE con
+        puntuación CVSS >= 9 (crítico), el build falla.
+        La primera ejecución descarga la BD del NVD
+        y puede tardar 5-10 minutos. Las siguientes son
+        rápidas porque usa la caché local.
+      -->
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>9.0.9</version>
+        <configuration>
+          <!-- Falla el build si hay CVE con CVSS >= 9 -->
+          <failBuildOnCVSS>9</failBuildOnCVSS>
+          <!-- Genera reportes en HTML, XML y JSON -->
+          <format>ALL</format>
+          <!--
+            API Key del NVD para mayor velocidad de descarga.
+            Se lee de la variable de entorno del pipeline.
+            Sin API key funciona igual pero más lento.
+          -->
+          <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+          <!-- No falla si no puede conectar al NVD -->
+          <failOnError>false</failOnError>
+        </configuration>
+      </plugin>
+
+      <!--
+        JACOCO: Mide la cobertura de las pruebas unitarias.
+        Genera un reporte HTML que muestra qué líneas de código
+        fueron ejecutadas durante los tests y cuáles no.
+        El trabajo exige mínimo 70% de cobertura.
+        Si la cobertura es menor, mvn verify falla.
+
+        Funciona en 3 fases:
+        1. prepare-agent: instrumenta el código antes de los tests
+        2. report: genera el reporte HTML después de los tests
+        3. check: verifica que la cobertura >= 70%
+      -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.11</version>
+        <executions>
+
+          <!-- Fase 1: Agrega el agente de medición antes del test -->
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+
+          <!-- Fase 2: Genera el reporte HTML en target/site/jacoco -->
+          <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+
+          <!-- Fase 3: Verifica que la cobertura sea >= 70% -->
+          <execution>
+            <id>jacoco-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <!--
+                        0.70 = 70% de líneas deben estar
+                        cubiertas por pruebas.
+                        Si la cobertura es menor, el build falla
+                        con el mensaje:
+                        "Coverage check failed... Lines covered
+                        ratio is X, expected minimum is 0.70"
+                      -->
+                      <minimum>0.70</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

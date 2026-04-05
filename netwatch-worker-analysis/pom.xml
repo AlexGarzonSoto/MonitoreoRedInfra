@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.netwatch</groupId>
+    <artifactId>netwatch-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <!--
+    SOLO CAMBIA ESTO para cada worker:
+    - netwatch-worker-capture   → Captura paquetes de red
+    - netwatch-worker-analysis  → Detecta amenazas (este)
+    - netwatch-worker-alerts    → Envía notificaciones
+    - netwatch-worker-osint     → Enriquece con GeoIP
+  -->
+  <artifactId>netwatch-worker-analysis</artifactId>
+  <name>NetWatch — Worker Análisis de Amenazas</name>
+  <description>
+    Consume paquetes de red del broker, aplica el motor
+    de detección STRIDE y publica amenazas detectadas.
+  </description>
+
+  <dependencies>
+
+    <!-- ═══════════════════════════════════════════════════
+         MENSAJERÍA — NÚCLEO DE ESTE WORKER
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      AMQP/RabbitMQ: este worker es fundamentalmente un
+      consumer de mensajes. @RabbitListener es la anotación
+      principal que usará todo el tiempo.
+      Sin esta dependencia el worker no tiene razón de existir.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         BASE DE DATOS — PARA PERSISTIR AMENAZAS
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      JPA + PostgreSQL: el worker de análisis guarda en la
+      base de datos las amenazas que detecta.
+      Necesita el mismo par de dependencias que el gateway.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         OBSERVABILIDAD
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      Actuator: expone /actuator/health para que Docker
+      verifique que el worker está vivo.
+      Sin esto, el healthcheck del docker-compose falla
+      y Docker reinicia el contenedor continuamente.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--
+      Prometheus: expone /actuator/prometheus para que
+      Prometheus recolecte métricas de este worker
+      (cuántos mensajes procesó, latencia, errores, etc.)
+    -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         PRUEBAS
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-amqp-test: utilidades para probar consumers
+      de RabbitMQ sin necesitar un broker real corriendo.
+      Permite simular la llegada de mensajes en los tests.
+    -->
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    PARENT: Apunta al POM padre del proyecto.
+    relativePath: "../pom.xml" significa "sube un nivel
+    desde esta carpeta y busca el pom.xml".
+    Maven hereda de él: versión de Spring Boot, Lombok,
+    SpotBugs, JaCoCo y el resto de configuraciones.
+  -->
+  <parent>
+    <groupId>com.netwatch</groupId>
+    <artifactId>netwatch-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <!--
+    IDENTIDAD DE ESTE MÓDULO.
+    groupId: heredado del padre, no hace falta repetirlo.
+    artifactId: nombre único de este microservicio.
+                Debe coincidir con el <module> en el POM padre.
+    packaging: jar (valor por defecto, genera un JAR ejecutable).
+  -->
+  <artifactId>netwatch-api-gateway</artifactId>
+  <name>NetWatch — API Gateway</name>
+  <description>
+    Punto único de entrada con autenticación JWT,
+    control de roles RBAC y publicación al broker.
+  </description>
+
+  <dependencies>
+
+    <!-- ═══════════════════════════════════════════════════
+         CAPA WEB
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-boot-starter-web: incluye todo lo necesario
+      para crear endpoints REST con Spring MVC.
+      Incluye: Tomcat embebido, Jackson (JSON), Spring MVC.
+      Tomcat escucha en el puerto 8080 por defecto.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!--
+      spring-boot-starter-validation: habilita las anotaciones
+      de validación de Jakarta como @NotBlank, @Email, @Size.
+      Se usa en los DTOs para validar automáticamente las
+      peticiones HTTP antes de que lleguen al controlador.
+      Sin esto, @Valid en los parámetros no hace nada.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         SEGURIDAD Y AUTENTICACIÓN
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-boot-starter-security: activa Spring Security.
+      Por defecto protege TODOS los endpoints.
+      La clase SecurityConfig que crearemos personaliza
+      cuáles rutas son públicas y cuáles requieren token.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!--
+      jjwt-api: la interfaz pública de la librería JWT.
+      Se usa para crear y parsear tokens JWT.
+      Las versiones vienen del POM padre (0.12.5).
+    -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+    </dependency>
+
+    <!--
+      jjwt-impl: la implementación interna de JWT.
+      scope=runtime significa que no se necesita en
+      compilación, solo en ejecución. Buena práctica
+      de seguridad: el código solo ve la API pública.
+    -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!--
+      jjwt-jackson: permite que jjwt use Jackson para
+      serializar el payload del token a/desde JSON.
+      También scope=runtime.
+    -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         BASE DE DATOS
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-boot-starter-data-jpa: incluye Hibernate (el ORM)
+      y Spring Data JPA. Permite mapear clases Java a tablas
+      de PostgreSQL con anotaciones como @Entity y @Column.
+      También incluye Spring Data Repositories que generan
+      automáticamente queries como findByEmail() sin código SQL.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <!--
+      postgresql: el driver JDBC oficial de PostgreSQL.
+      scope=runtime porque no se referencia directamente
+      en el código Java. Spring Boot lo detecta y lo usa
+      automáticamente gracias al spring.datasource.url
+      en el application.yml.
+    -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         MENSAJERÍA ASÍNCRONA
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-boot-starter-amqp: incluye el cliente de
+      RabbitMQ para Spring. Permite usar @RabbitListener
+      para recibir mensajes y RabbitTemplate para enviarlos.
+      AMQP = Advanced Message Queuing Protocol, el protocolo
+      que habla RabbitMQ.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         OBSERVABILIDAD
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-boot-starter-actuator: expone endpoints de
+      monitoreo automáticamente:
+      /actuator/health → estado del servicio (usado por Docker
+                         para el healthcheck)
+      /actuator/prometheus → métricas en formato Prometheus
+                             (usado por Grafana)
+      /actuator/info → información del build
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--
+      micrometer-registry-prometheus: formatea las métricas
+      internas de Spring Boot en el formato que entiende
+      Prometheus. Sin esto, /actuator/prometheus no existe.
+    -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
+         PRUEBAS
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      spring-security-test: agrega utilidades para probar
+      endpoints protegidos sin hacer login real.
+      Permite usar @WithMockUser en los tests para simular
+      que hay un usuario autenticado con cierto rol.
+      scope=test: solo en pruebas, no en producción.
+    -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      spring-boot-starter-test: ya viene del POM padre,
+      pero lo incluimos explícitamente aquí también para
+      que sea visible al leer solo este POM.
+      Incluye: JUnit 5, Mockito, AssertJ, MockMvc.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <!--
+        spring-boot-maven-plugin: empaqueta el proyecto como
+        un JAR ejecutable (fat JAR) que incluye todas las
+        dependencias. El resultado es un archivo único que
+        se ejecuta con: java -jar netwatch-api-gateway.jar
+        También permite ejecutar con: mvn spring-boot:run
+        La sección excludes evita que Lombok se incluya
+        en el JAR final (solo se necesita en compilación).
+      -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>
