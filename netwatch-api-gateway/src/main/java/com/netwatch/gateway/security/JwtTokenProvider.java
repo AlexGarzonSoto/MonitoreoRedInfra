@@ -77,4 +77,27 @@ public class JwtTokenProvider {
     public String getRoleFromToken(String token) {
         return parseAccessToken(token).get("role", String.class);
     }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(refreshKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return "refresh".equals(claims.get("type", String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Refresh token inválido: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public String getUserIdFromRefreshToken(String token) {
+        return Jwts.parser()
+                .verifyWith(refreshKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
 }
