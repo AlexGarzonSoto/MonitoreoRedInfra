@@ -49,6 +49,12 @@ public class PacketConsumerService {
 
                 ThreatMessage msg = toMessage(event);
 
+                // Persistir en API Gateway (network_events)
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.NETWATCH_EXCHANGE,
+                        RabbitMQConfig.RK_THREATS,
+                        msg);
+
                 // Notificar al worker-alerts
                 rabbitTemplate.convertAndSend(
                         RabbitMQConfig.NETWATCH_EXCHANGE,

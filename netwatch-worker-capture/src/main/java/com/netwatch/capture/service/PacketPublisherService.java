@@ -29,6 +29,20 @@ public class PacketPublisherService {
     private final RawPacketRepository repository;
     private final MeterRegistry meterRegistry;
 
+    public void publishSimulated(PacketMessage msg) {
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.NETWATCH_EXCHANGE,
+                    RabbitMQConfig.RK_PACKETS,
+                    msg);
+            meterRegistry.counter("capture.packets.simulated",
+                    "protocol", msg.protocol()).increment();
+            log.debug("Paquete simulado publicado: {} → {}:{}", msg.srcIp(), msg.dstIp(), msg.dstPort());
+        } catch (Exception e) {
+            log.error("Error publicando paquete simulado: {}", e.getMessage());
+        }
+    }
+
     public void process(Packet packet) {
         try {
             PacketMessage msg = extractMetadata(packet);

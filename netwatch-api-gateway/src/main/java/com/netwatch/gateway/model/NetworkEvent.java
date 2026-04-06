@@ -40,6 +40,13 @@ public class NetworkEvent {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String country;
+    private String city;
+    private String asn;
+    private Double latitude;
+    private Double longitude;
+    private Integer abuseScore;
+
     private boolean resolved = false;
 
     @CreationTimestamp

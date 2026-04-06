@@ -60,8 +60,8 @@ public class PacketCaptureService {
         try {
             PcapNetworkInterface nif = Pcaps.getDevByName(props.getNetworkInterface());
             if (nif == null) {
-                log.error("Interfaz de red '{}' no encontrada. Captura abortada.",
-                        props.getNetworkInterface());
+                log.warn("Interfaz '{}' no encontrada — activando simulación.", props.getNetworkInterface());
+                simulationLoop();
                 return;
             }
 
@@ -70,18 +70,58 @@ public class PacketCaptureService {
                     : PcapNetworkInterface.PromiscuousMode.NONPROMISCUOUS;
 
             handle = nif.openLive(props.getSnapLen(), mode, props.getTimeoutMs());
-
-            // -1 → loop infinito; el hilo sale cuando se llama breakLoop()
             handle.loop(-1, (PacketListener) this::onPacket);
 
         } catch (PcapNativeException e) {
-            log.error("Error nativo de Pcap4J (¿faltan permisos NET_RAW?): {}", e.getMessage());
+            log.warn("Pcap4J no disponible ({}), activando simulación.", e.getMessage());
+            simulationLoop();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.info("Hilo de captura interrumpido");
         } catch (NotOpenException e) {
             if (running) {
                 log.error("Handle cerrado inesperadamente: {}", e.getMessage());
+            }
+        } catch (Throwable e) {
+            log.warn("Error inicializando Pcap4J ({}), activando simulación.", e.getMessage());
+            simulationLoop();
+        }
+    }
+
+    private void simulationLoop() {
+        log.info("Modo simulación activo — generando paquetes sintéticos cada 5 s");
+        String[] ips      = {"10.0.0.1","10.0.0.2","192.168.1.10","172.16.0.5","10.10.10.20"};
+        int[]    ports    = {22, 80, 443, 3389, 53, 8080, 5432, 3306};
+        String[] protos   = {"TCP", "UDP"};
+        String[] tcpFlags = {"SYN", "SYN,ACK", "ACK", "PSH,ACK", "RST"};
+        java.util.Random rnd = new java.util.Random();
+
+        while (running) {
+            try {
+                for (int i = 0; i < 5; i++) {
+                    String proto   = protos[rnd.nextInt(protos.length)];
+                    String flags   = "TCP".equals(proto) ? tcpFlags[rnd.nextInt(tcpFlags.length)] : null;
+                    String srcIp   = ips[rnd.nextInt(ips.length)];
+                    int    dstPort = ports[rnd.nextInt(ports.length)];
+                    int    length  = 64 + rnd.nextInt(1400);
+
+                    com.netwatch.capture.dto.PacketMessage msg =
+                        new com.netwatch.capture.dto.PacketMessage(
+                            srcIp,
+                            "10.0.0.100",
+                            1024 + rnd.nextInt(60000),
+                            dstPort,
+                            proto,
+                            flags,
+                            length,
+                            java.time.LocalDateTime.now()
+                        );
+                    publisher.publishSimulated(msg);
+                }
+                Thread.sleep(5_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
