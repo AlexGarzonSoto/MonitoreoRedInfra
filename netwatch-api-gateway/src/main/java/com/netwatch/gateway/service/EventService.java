@@ -30,7 +30,18 @@ public class EventService {
             LocalDateTime to,
             Pageable pageable) {
 
-        return eventRepository.findByFilters(severity, threatType, srcIp, from, to, pageable);
+        // Sin filtros: usa findAll para evitar problemas de inferencia de tipos en PostgreSQL
+        if (severity == null && threatType == null && srcIp == null && from == null && to == null) {
+            return eventRepository.findAll(pageable);
+        }
+
+        return eventRepository.findByFilters(
+                severity   != null ? severity.name()    : null,
+                threatType != null ? threatType.name()  : null,
+                srcIp,
+                from,
+                to,
+                pageable);
     }
 
     @Transactional(readOnly = true)

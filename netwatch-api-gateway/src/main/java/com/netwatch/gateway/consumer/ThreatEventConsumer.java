@@ -1,6 +1,8 @@
 package com.netwatch.gateway.consumer;
 
+import com.netwatch.gateway.model.Alert;
 import com.netwatch.gateway.model.NetworkEvent;
+import com.netwatch.gateway.repository.AlertRepository;
 import com.netwatch.gateway.repository.NetworkEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import java.util.Map;
 public class ThreatEventConsumer {
 
     private final NetworkEventRepository eventRepository;
+    private final AlertRepository         alertRepository;
 
     @RabbitListener(queues = "netwatch.threats.detected",
                     containerFactory = "rabbitListenerContainerFactory")
@@ -43,8 +46,21 @@ public class ThreatEventConsumer {
             if (payload.containsKey("longitude"))  event.setLongitude(doubleVal(payload, "longitude"));
             if (payload.containsKey("abuseScore")) event.setAbuseScore(intVal(payload, "abuseScore"));
 
-            eventRepository.save(event);
-            log.info("Amenaza persistida: {} {} desde {}", event.getThreatType(), event.getSeverity(), event.getSrcIp());
+            NetworkEvent saved = eventRepository.save(event);
+            log.info("Amenaza persistida: {} {} desde {}", saved.getThreatType(), saved.getSeverity(), saved.getSrcIp());
+
+            // Crear alerta para eventos HIGH y CRITICAL
+            if (saved.getSeverity() == NetworkEvent.Severity.HIGH
+                    || saved.getSeverity() == NetworkEvent.Severity.CRITICAL) {
+                Alert alert = Alert.builder()
+                        .eventId(saved.getId())
+                        .title("[" + saved.getSeverity() + "] " + saved.getThreatType() + " desde " + saved.getSrcIp())
+                        .details(saved.getDescription())
+                        .status(Alert.AlertStatus.OPEN)
+                        .notificationSent(false)
+                        .build();
+                alertRepository.save(alert);
+            }
 
         } catch (Exception e) {
             log.error("Error persistiendo amenaza: {}", e.getMessage(), e);

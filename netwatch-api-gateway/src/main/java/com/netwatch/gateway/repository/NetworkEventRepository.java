@@ -23,17 +23,26 @@ public interface NetworkEventRepository extends JpaRepository<NetworkEvent, UUID
 
     Page<NetworkEvent> findByTimestampBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
 
-    @Query("""
-            SELECT e FROM NetworkEvent e
-            WHERE (:severity IS NULL OR e.severity = :severity)
-              AND (:threatType IS NULL OR e.threatType = :threatType)
-              AND (:srcIp IS NULL OR e.srcIp = :srcIp)
-              AND (:from IS NULL OR e.timestamp >= :from)
-              AND (:to IS NULL OR e.timestamp <= :to)
-            """)
+    @Query(value = """
+            SELECT * FROM network_events
+            WHERE (:severity IS NULL OR severity = CAST(:severity AS varchar))
+              AND (:threatType IS NULL OR threat_type = CAST(:threatType AS varchar))
+              AND (:srcIp IS NULL OR src_ip = :srcIp)
+              AND (:from IS NULL OR timestamp >= CAST(:from AS timestamp))
+              AND (:to IS NULL OR timestamp <= CAST(:to AS timestamp))
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM network_events
+            WHERE (:severity IS NULL OR severity = CAST(:severity AS varchar))
+              AND (:threatType IS NULL OR threat_type = CAST(:threatType AS varchar))
+              AND (:srcIp IS NULL OR src_ip = :srcIp)
+              AND (:from IS NULL OR timestamp >= CAST(:from AS timestamp))
+              AND (:to IS NULL OR timestamp <= CAST(:to AS timestamp))
+            """,
+            nativeQuery = true)
     Page<NetworkEvent> findByFilters(
-            @Param("severity") NetworkEvent.Severity severity,
-            @Param("threatType") NetworkEvent.ThreatType threatType,
+            @Param("severity") String severity,
+            @Param("threatType") String threatType,
             @Param("srcIp") String srcIp,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
