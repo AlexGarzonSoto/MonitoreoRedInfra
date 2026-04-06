@@ -111,11 +111,13 @@ jobs:
         run: mvn package -DskipTests -B -pl ${{ matrix.service }} -am -q
 
       - name: Construir imagen Docker
-        # FIX: tag local sin prefijo DockerHub — no se necesita el secret para CI
+        # FIX: contexto raíz (.) porque los Dockerfiles copian el pom.xml padre
+        # y fuentes de múltiples módulos — el Dockerfile específico se indica con -f
         run: |
           docker build \
+            -f ${{ matrix.service }}/Dockerfile \
             -t ${{ matrix.service }}:ci-${{ github.sha }} \
-            ./${{ matrix.service }}
+            .
 
       - name: Trivy — escaneo de imagen
         uses: aquasecurity/trivy-action@master
@@ -174,16 +176,18 @@ jobs:
             -pl netwatch-api-gateway,netwatch-worker-analysis \
             -am
         env:
-          # FIX: nombres exactos que Spring Boot lee via application.yml
-          SPRING_DATASOURCE_URL:      jdbc:postgresql://localhost:5432/netwatch_test
-          SPRING_DATASOURCE_USERNAME: netwatch
-          SPRING_DATASOURCE_PASSWORD: testpass
-          SPRING_RABBITMQ_HOST:       localhost
-          SPRING_RABBITMQ_USERNAME:   guest
-          SPRING_RABBITMQ_PASSWORD:   guest
-          # FIX: secrets de 64+ chars requeridos por HMAC-SHA512
-          NETWATCH_JWT_SECRET:          test-jwt-secret-key-minimo-64-caracteres-para-hmac-sha256-netwatch-ci
-          NETWATCH_JWT_REFRESH_SECRET:  test-refresh-secret-key-minimo-64-caracteres-para-hmac-sha256-ci
+          # Nombres exactos que leen los application.properties via ${VAR:default}
+          DB_HOST:            localhost
+          DB_PORT:            5432
+          DB_NAME:            netwatch_test
+          DB_USER:            netwatch
+          DB_PASS:            testpass
+          RABBITMQ_HOST:      localhost
+          RABBITMQ_USER:      guest
+          RABBITMQ_PASS:      guest
+          # JWT: 64+ chars requeridos por HMAC-SHA512
+          JWT_SECRET:         test-jwt-secret-key-minimo-64-caracteres-para-hmac-sha256-netwatch-ci
+          JWT_REFRESH_SECRET: test-refresh-secret-key-minimo-64-caracteres-para-hmac-sha256-ci
 
       - uses: actions/upload-artifact@v4
         if: always()
