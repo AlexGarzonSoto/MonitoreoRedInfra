@@ -150,9 +150,9 @@ CREATE INDEX IF NOT EXISTS idx_osint_threat_id ON osint_records (threat_id);
 -- ─────────────────────────────────────────────────────────────────────────
 INSERT INTO users (email, password_hash, role) VALUES
     ('admin@netwatch.local',
-     '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/i.8c/F5K2',
+     '$2b$12$Bowplj7Z.Kd9OMOqYN7ide57FxYTGDs35llqgsXh3TJb9IHby661i',
      'ADMIN'),
     ('analista@netwatch.local',
-     '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/i.8c/F5K2',
+     '$2b$12$Bowplj7Z.Kd9OMOqYN7ide57FxYTGDs35llqgsXh3TJb9IHby661i',
      'ANALYST')
 ON CONFLICT (email) DO NOTHING;
