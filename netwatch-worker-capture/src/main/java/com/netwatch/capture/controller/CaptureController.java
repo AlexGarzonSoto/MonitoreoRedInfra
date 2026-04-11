@@ -9,6 +9,7 @@ import org.pcap4j.core.Pcaps;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.net.NetworkInterface;
 import java.util.*;
 
@@ -71,10 +72,29 @@ public class CaptureController {
             }
         }
 
-        // Si aún vacío, devolver interfaz simulada
+        // Leer interfaces del host via /host/sys/class/net (montado desde el host)
         if (interfaces.isEmpty()) {
-            interfaces.add(Map.of("name", "eth0", "description", "Interfaz simulada", "source", "simulation"));
-            interfaces.add(Map.of("name", "lo",   "description", "Loopback",          "source", "simulation"));
+            File hostNetDir = new File("/host/sys/class/net");
+            if (hostNetDir.exists() && hostNetDir.isDirectory()) {
+                String[] names = hostNetDir.list();
+                if (names != null) {
+                    Arrays.sort(names);
+                    for (String name : names) {
+                        // Excluir veth (interfaces virtuales de Docker) y docker0
+                        if (name.startsWith("veth") || name.equals("docker0")) continue;
+                        Map<String, String> entry = new LinkedHashMap<>();
+                        entry.put("name", name);
+                        entry.put("description", describeInterface(name));
+                        entry.put("source", "host");
+                        interfaces.add(entry);
+                    }
+                }
+            }
+        }
+
+        // Fallback final si todo falla
+        if (interfaces.isEmpty()) {
+            interfaces.add(Map.of("name", "eth0", "description", "Interfaz por defecto", "source", "default"));
         }
 
         return ResponseEntity.ok(Map.of(
@@ -146,5 +166,17 @@ public class CaptureController {
             "interface", captureProperties.getNetworkInterface(),
             "message",   "Captura iniciada en: " + captureProperties.getNetworkInterface()
         ));
+    }
+
+    private String describeInterface(String name) {
+        if (name.startsWith("wlan") || name.startsWith("wlp") || name.startsWith("wlx"))
+            return "WiFi — " + name;
+        if (name.startsWith("eth") || name.startsWith("enp") || name.startsWith("ens"))
+            return "Ethernet — " + name;
+        if (name.equals("lo"))
+            return "Loopback";
+        if (name.startsWith("br-"))
+            return "Bridge Docker — " + name;
+        return name;
     }
 }

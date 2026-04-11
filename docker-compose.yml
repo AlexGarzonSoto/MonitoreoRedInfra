@@ -123,6 +123,8 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    volumes:
+      - /sys/class/net:/host/sys/class/net:ro
     environment:
       RABBITMQ_HOST:          rabbitmq
       RABBITMQ_USER:          ${RABBITMQ_USER:-netwatch}
