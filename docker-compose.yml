@@ -1,3 +1,11 @@
+# ── Logging con rotación (aplica a todos los servicios via anchor YAML) ────
+x-logging: &default-logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "3"
+
 # ── Redes ───────────────────────────────────────────────────────────────────
 networks:
   netwatch-net:
@@ -16,6 +24,7 @@ services:
 
   # ── PostgreSQL + TimescaleDB ──────────────────────────────────────────────
   postgres:
+    <<: *default-logging
     image: timescale/timescaledb:latest-pg15
     container_name: netwatch-postgres
     networks: [netwatch-net]
@@ -38,6 +47,7 @@ services:
 
   # ── RabbitMQ ──────────────────────────────────────────────────────────────
   rabbitmq:
+    <<: *default-logging
     image: rabbitmq:3.12-management-alpine
     container_name: netwatch-rabbitmq
     networks: [netwatch-net]
@@ -59,6 +69,7 @@ services:
 
   # ── Valkey (reemplaza Redis, protocolo 100% compatible) ───────────────────
   valkey:
+    <<: *default-logging
     image: valkey/valkey:7.2-alpine
     container_name: netwatch-valkey
     networks: [netwatch-net]
@@ -76,6 +87,7 @@ services:
 
   # ── API Gateway ───────────────────────────────────────────────────────────
   api-gateway:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-api-gateway/Dockerfile
@@ -110,6 +122,7 @@ services:
 
   # ── Worker Captura ─────────────────────────────────────────────────────────
   worker-capture:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-worker-capture/Dockerfile
@@ -151,6 +164,7 @@ services:
 
   # ── Worker Análisis ────────────────────────────────────────────────────────
   worker-analysis:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-worker-analysis/Dockerfile
@@ -183,6 +197,7 @@ services:
 
   # ── Worker Alertas ─────────────────────────────────────────────────────────
   worker-alerts:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-worker-alerts/Dockerfile
@@ -222,6 +237,7 @@ services:
 
   # ── Worker OSINT ───────────────────────────────────────────────────────────
   worker-osint:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-worker-osint/Dockerfile
@@ -257,6 +273,7 @@ services:
 
   # ── Worker Scanner (Nmap + NVD) ────────────────────────────────────────────
   worker-scanner:
+    <<: *default-logging
     build:
       context: .
       dockerfile: netwatch-worker-scanner/Dockerfile
@@ -286,6 +303,7 @@ services:
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:
+    <<: *default-logging
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -307,6 +325,7 @@ services:
 
   # ── Prometheus ─────────────────────────────────────────────────────────────
   prometheus:
+    <<: *default-logging
     image: prom/prometheus:latest
     container_name: netwatch-prometheus
     networks: [netwatch-net]
@@ -314,6 +333,7 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.retention.time=15d"
@@ -321,6 +341,7 @@ services:
 
   # ── Grafana ────────────────────────────────────────────────────────────────
   grafana:
+    <<: *default-logging
     image: grafana/grafana-oss:latest
     container_name: netwatch-grafana
     networks: [netwatch-net]
@@ -339,6 +360,7 @@ services:
 
   # ── Loki ───────────────────────────────────────────────────────────────────
   loki:
+    <<: *default-logging
     image: grafana/loki:latest
     container_name: netwatch-loki
     networks: [netwatch-net]
@@ -352,6 +374,7 @@ services:
 
   # ── Promtail ──────────────────────────────────────────────────────────────
   promtail:
+    <<: *default-logging
     image: grafana/promtail:latest
     container_name: netwatch-promtail
     networks: [netwatch-net]

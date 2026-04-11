@@ -1,0 +1,51 @@
+# ── Caddyfile ────────────────────────────────────────────────────────────────
+# Caddy obtiene certificado TLS automáticamente vía Let's Encrypt si DOMAIN
+# apunta a un nombre de dominio real con DNS configurado.
+# Para desarrollo local usa: DOMAIN=localhost (certificado auto-firmado).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Frontend + API Gateway (puerto principal)
+{$DOMAIN} {
+
+  # Headers de seguridad
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options    "nosniff"
+    X-Frame-Options           "DENY"
+    Referrer-Policy           "strict-origin-when-cross-origin"
+    -Server
+  }
+
+  # API — proxy al gateway
+  handle /api/* {
+    reverse_proxy api-gateway:8080 {
+      header_up Host {host}
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-For {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+    }
+  }
+
+  # Actuator — solo health público, resto bloqueado
+  handle /actuator/health {
+    reverse_proxy api-gateway:8080
+  }
+  handle /actuator/* {
+    respond "Forbidden" 403
+  }
+
+  # Frontend SPA
+  handle {
+    reverse_proxy frontend:80
+  }
+}
+
+# Grafana — subdominio separado
+grafana.{$DOMAIN} {
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Content-Type-Options    "nosniff"
+    -Server
+  }
+  reverse_proxy grafana:3000
+}

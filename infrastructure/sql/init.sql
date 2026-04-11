@@ -57,6 +57,18 @@ CREATE INDEX IF NOT EXISTS idx_events_threat
 CREATE INDEX IF NOT EXISTS idx_events_resolved
     ON network_events (resolved, timestamp DESC);
 
+-- Índices compuestos para queries frecuentes del dashboard
+-- Cubre: "eventos no resueltos ordenados por severidad y tiempo"
+CREATE INDEX IF NOT EXISTS idx_events_unresolved_severity
+    ON network_events (resolved, severity, timestamp DESC)
+    WHERE resolved = false;
+-- Cubre: "conteo por severidad en ventana de tiempo" (summary endpoint)
+CREATE INDEX IF NOT EXISTS idx_events_severity_timestamp
+    ON network_events (severity, timestamp DESC);
+-- Cubre: "eventos recientes por IP de origen con amenaza"
+CREATE INDEX IF NOT EXISTS idx_events_srcip_threat_time
+    ON network_events (src_ip, threat_type, timestamp DESC);
+
 -- ── Tabla: alerts ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS alerts (
     id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),

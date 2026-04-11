@@ -84,7 +84,7 @@ export const useEventsStore = defineStore('events', () => {
     }
   }
 
-  function startPolling(intervalMs = 10000) {
+  function startPolling(intervalMs = 30000) {
     fetchEvents()
     fetchSummary()
     pollingTimer = setInterval(() => {

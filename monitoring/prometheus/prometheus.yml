@@ -4,6 +4,10 @@ global:
   external_labels:
     project: netwatch
 
+# Cargar reglas de alerta
+rule_files:
+  - "alert-rules.yml"
+
 scrape_configs:
 
   - job_name: netwatch-api-gateway

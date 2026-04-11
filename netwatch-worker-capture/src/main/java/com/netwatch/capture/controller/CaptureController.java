@@ -38,20 +38,41 @@ public class CaptureController {
     public ResponseEntity<Map<String, Object>> listInterfaces() {
         List<Map<String, String>> interfaces = new ArrayList<>();
 
-        // Intentar con Pcap4J
-        try {
-            List<PcapNetworkInterface> pcapIfs = Pcaps.findAllDevs();
-            if (pcapIfs != null) {
-                for (PcapNetworkInterface nif : pcapIfs) {
+        // Primera opción: leer interfaces del host via /host/sys/class/net (montado desde el host)
+        // Esto da visibilidad de las interfaces reales del host (wlan0, eth0, etc.)
+        File hostNetDir = new File("/host/sys/class/net");
+        if (hostNetDir.exists() && hostNetDir.isDirectory()) {
+            String[] names = hostNetDir.list();
+            if (names != null) {
+                Arrays.sort(names);
+                for (String name : names) {
+                    // Excluir veth (interfaces virtuales de Docker) y docker0
+                    if (name.startsWith("veth") || name.equals("docker0")) continue;
                     Map<String, String> entry = new LinkedHashMap<>();
-                    entry.put("name", nif.getName());
-                    entry.put("description", nif.getDescription() != null ? nif.getDescription() : "");
-                    entry.put("source", "pcap4j");
+                    entry.put("name", name);
+                    entry.put("description", describeInterface(name));
+                    entry.put("source", "host");
                     interfaces.add(entry);
                 }
             }
-        } catch (Exception e) {
-            log.debug("Pcap4J no disponible para listar interfaces: {}", e.getMessage());
+        }
+
+        // Fallback: Pcap4J (solo si /host/sys/class/net no estaba disponible)
+        if (interfaces.isEmpty()) {
+            try {
+                List<PcapNetworkInterface> pcapIfs = Pcaps.findAllDevs();
+                if (pcapIfs != null) {
+                    for (PcapNetworkInterface nif : pcapIfs) {
+                        Map<String, String> entry = new LinkedHashMap<>();
+                        entry.put("name", nif.getName());
+                        entry.put("description", nif.getDescription() != null ? nif.getDescription() : "");
+                        entry.put("source", "pcap4j");
+                        interfaces.add(entry);
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Pcap4J no disponible para listar interfaces: {}", e.getMessage());
+            }
         }
 
         // Fallback: Java stdlib
@@ -69,26 +90,6 @@ public class CaptureController {
                 }
             } catch (Exception e) {
                 log.warn("No se pudieron listar interfaces de red: {}", e.getMessage());
-            }
-        }
-
-        // Leer interfaces del host via /host/sys/class/net (montado desde el host)
-        if (interfaces.isEmpty()) {
-            File hostNetDir = new File("/host/sys/class/net");
-            if (hostNetDir.exists() && hostNetDir.isDirectory()) {
-                String[] names = hostNetDir.list();
-                if (names != null) {
-                    Arrays.sort(names);
-                    for (String name : names) {
-                        // Excluir veth (interfaces virtuales de Docker) y docker0
-                        if (name.startsWith("veth") || name.equals("docker0")) continue;
-                        Map<String, String> entry = new LinkedHashMap<>();
-                        entry.put("name", name);
-                        entry.put("description", describeInterface(name));
-                        entry.put("source", "host");
-                        interfaces.add(entry);
-                    }
-                }
             }
         }
 

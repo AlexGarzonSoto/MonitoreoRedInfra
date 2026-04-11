@@ -1,0 +1,172 @@
+# ── docker-compose.prod.yml ──────────────────────────────────────────────────
+# Override de producción: límites de recursos + TLS con Caddy
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Requisito para HTTPS: definir DOMAIN en .env (ej: DOMAIN=netwatch.miempresa.com)
+# Caddy obtiene el certificado TLS automáticamente via Let's Encrypt.
+# ────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Límites de recursos por servicio ──────────────────────────────────────
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '1.0'
+        reservations:
+          memory: 512m
+
+  rabbitmq:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 256m
+
+  valkey:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+
+  api-gateway:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+        reservations:
+          memory: 256m
+
+  worker-capture:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.5'
+        reservations:
+          memory: 128m
+
+  worker-analysis:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 256m
+
+  worker-alerts:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+
+  worker-osint:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+
+  worker-scanner:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+        reservations:
+          memory: 256m
+
+  frontend:
+    # En producción el frontend NO expone puerto directo — Caddy hace proxy
+    ports: !reset []
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 64m
+
+  prometheus:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+        reservations:
+          memory: 256m
+
+  grafana:
+    # Grafana tampoco expone puerto directo en producción
+    ports: !reset []
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+
+  loki:
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+
+  promtail:
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+        reservations:
+          memory: 64m
+
+  # ── Caddy — reverse proxy con TLS automático ──────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: netwatch-caddy
+    networks: [netwatch-net]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    depends_on:
+      - api-gateway
+      - frontend
+      - grafana
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: '0.25'
+
+volumes:
+  caddy_data:
+  caddy_config:
