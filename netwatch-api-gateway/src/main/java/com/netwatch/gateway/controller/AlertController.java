@@ -1,5 +1,6 @@
 package com.netwatch.gateway.controller;
 
+import com.netwatch.gateway.dto.AlertDTO;
 import com.netwatch.gateway.model.Alert;
 import com.netwatch.gateway.service.AlertService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AlertController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN', 'VIEWER')")
-    public ResponseEntity<Page<Alert>> getAlerts(
+    public ResponseEntity<Page<AlertDTO>> getAlerts(
             @RequestParam(required = false) Alert.AlertStatus status,
             @PageableDefault(size = 50, sort = "createdAt") Pageable pageable) {
         return ResponseEntity.ok(alertService.findAll(status, pageable));
@@ -30,25 +31,25 @@ public class AlertController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN', 'VIEWER')")
-    public ResponseEntity<Alert> getAlert(@PathVariable UUID id) {
+    public ResponseEntity<AlertDTO> getAlert(@PathVariable UUID id) {
         return ResponseEntity.ok(alertService.findById(id));
     }
 
     @PatchMapping("/{id}/acknowledge")
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
-    public ResponseEntity<Alert> acknowledge(@PathVariable UUID id) {
+    public ResponseEntity<AlertDTO> acknowledge(@PathVariable UUID id) {
         return ResponseEntity.ok(alertService.acknowledge(id));
     }
 
     @PatchMapping("/{id}/resolve")
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
-    public ResponseEntity<Alert> resolve(@PathVariable UUID id) {
+    public ResponseEntity<AlertDTO> resolve(@PathVariable UUID id) {
         return ResponseEntity.ok(alertService.resolve(id));
     }
 
     @PatchMapping("/{id}/false-positive")
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
-    public ResponseEntity<Alert> markFalsePositive(@PathVariable UUID id) {
+    public ResponseEntity<AlertDTO> markFalsePositive(@PathVariable UUID id) {
         return ResponseEntity.ok(alertService.markFalsePositive(id));
     }
 

@@ -9,6 +9,7 @@ COPY netwatch-worker-analysis/pom.xml ./netwatch-worker-analysis/pom.xml
 COPY netwatch-worker-capture/pom.xml  ./netwatch-worker-capture/pom.xml
 COPY netwatch-worker-alerts/pom.xml   ./netwatch-worker-alerts/pom.xml
 COPY netwatch-worker-osint/pom.xml    ./netwatch-worker-osint/pom.xml
+COPY netwatch-worker-scanner/pom.xml  ./netwatch-worker-scanner/pom.xml
 
 RUN mvn dependency:go-offline -pl netwatch-worker-osint -am -B -q || true
 

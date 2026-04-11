@@ -1,7 +1,10 @@
 package com.netwatch.gateway.service;
 
+import com.netwatch.gateway.dto.AlertDTO;
 import com.netwatch.gateway.model.Alert;
+import com.netwatch.gateway.model.NetworkEvent;
 import com.netwatch.gateway.repository.AlertRepository;
+import com.netwatch.gateway.repository.NetworkEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -19,43 +22,60 @@ import java.util.UUID;
 public class AlertService {
 
     private final AlertRepository alertRepository;
+    private final NetworkEventRepository eventRepository;
 
     @Transactional(readOnly = true)
-    public Page<Alert> findAll(Alert.AlertStatus status, Pageable pageable) {
-        if (status != null) {
-            return alertRepository.findByStatus(status, pageable);
-        }
-        return alertRepository.findAll(pageable);
+    public Page<AlertDTO> findAll(Alert.AlertStatus status, Pageable pageable) {
+        Page<Alert> page = (status != null)
+                ? alertRepository.findByStatus(status, pageable)
+                : alertRepository.findAll(pageable);
+
+        return page.map(alert -> {
+            NetworkEvent event = alert.getEventId() != null
+                    ? eventRepository.findById(alert.getEventId()).orElse(null)
+                    : null;
+            return AlertDTO.from(alert, event);
+        });
     }
 
     @Transactional(readOnly = true)
-    public Alert findById(UUID id) {
-        return alertRepository.findById(id)
+    public AlertDTO findById(UUID id) {
+        Alert alert = alertRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
+        NetworkEvent event = alert.getEventId() != null
+                ? eventRepository.findById(alert.getEventId()).orElse(null)
+                : null;
+        return AlertDTO.from(alert, event);
     }
 
     @Transactional
-    public Alert acknowledge(UUID id) {
-        Alert alert = findById(id);
+    public AlertDTO acknowledge(UUID id) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
         alert.setStatus(Alert.AlertStatus.ACKNOWLEDGED);
+        alert = alertRepository.save(alert);
         log.info("Alerta reconocida: {}", id);
-        return alertRepository.save(alert);
+        return toDTO(alert);
     }
 
     @Transactional
-    public Alert resolve(UUID id) {
-        Alert alert = findById(id);
+    public AlertDTO resolve(UUID id) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
         alert.setStatus(Alert.AlertStatus.RESOLVED);
+        alert = alertRepository.save(alert);
         log.info("Alerta resuelta: {}", id);
-        return alertRepository.save(alert);
+        return toDTO(alert);
     }
 
     @Transactional
-    public Alert markFalsePositive(UUID id) {
-        Alert alert = findById(id);
+    public AlertDTO markFalsePositive(UUID id) {
+        Alert alert = alertRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
         alert.setStatus(Alert.AlertStatus.FALSE_POSITIVE);
+        alert = alertRepository.save(alert);
         log.info("Alerta marcada como falso positivo: {}", id);
-        return alertRepository.save(alert);
+        return toDTO(alert);
     }
 
     @Transactional(readOnly = true)
@@ -66,5 +86,12 @@ public class AlertService {
                 "resolved",      alertRepository.countByStatus(Alert.AlertStatus.RESOLVED),
                 "falsePositive", alertRepository.countByStatus(Alert.AlertStatus.FALSE_POSITIVE)
         );
+    }
+
+    private AlertDTO toDTO(Alert alert) {
+        NetworkEvent event = alert.getEventId() != null
+                ? eventRepository.findById(alert.getEventId()).orElse(null)
+                : null;
+        return AlertDTO.from(alert, event);
     }
 }

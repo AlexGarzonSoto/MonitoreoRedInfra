@@ -18,12 +18,16 @@ public class RabbitMQConfig {
     public static final String THREATS_QUEUE        = "netwatch.threats.detected";
     public static final String ALERTS_QUEUE         = "netwatch.alerts.notify";
     public static final String OSINT_ENRICH_QUEUE   = "netwatch.osint.enrich";
+    public static final String SCAN_REQ_QUEUE       = "netwatch.scan.requests";
+    public static final String SCAN_RES_QUEUE       = "netwatch.scan.results";
 
     // Routing keys
-    public static final String RK_PACKETS   = "packets.raw";
-    public static final String RK_THREATS   = "threats.detected";
-    public static final String RK_ALERTS    = "alerts.notify";
-    public static final String RK_OSINT     = "osint.enrich";
+    public static final String RK_PACKETS       = "packets.raw";
+    public static final String RK_THREATS       = "threats.detected";
+    public static final String RK_ALERTS        = "alerts.notify";
+    public static final String RK_OSINT         = "osint.enrich";
+    public static final String RK_SCAN_REQUEST  = "scan.request";
+    public static final String RK_SCAN_RESULT   = "scan.result";
 
     @Bean
     public DirectExchange netwatchExchange() {
@@ -34,6 +38,8 @@ public class RabbitMQConfig {
     @Bean public Queue threatsQueue()     { return QueueBuilder.durable(THREATS_QUEUE).build(); }
     @Bean public Queue alertsQueue()      { return QueueBuilder.durable(ALERTS_QUEUE).build(); }
     @Bean public Queue osintEnrichQueue() { return QueueBuilder.durable(OSINT_ENRICH_QUEUE).build(); }
+    @Bean public Queue scanRequestQueue() { return QueueBuilder.durable(SCAN_REQ_QUEUE).build(); }
+    @Bean public Queue scanResultQueue()  { return QueueBuilder.durable(SCAN_RES_QUEUE).build(); }
 
     @Bean
     public Binding packetsBinding(Queue packetsRawQueue, DirectExchange netwatchExchange) {
@@ -50,6 +56,14 @@ public class RabbitMQConfig {
     @Bean
     public Binding osintBinding(Queue osintEnrichQueue, DirectExchange netwatchExchange) {
         return BindingBuilder.bind(osintEnrichQueue).to(netwatchExchange).with(RK_OSINT);
+    }
+    @Bean
+    public Binding scanRequestBinding(Queue scanRequestQueue, DirectExchange netwatchExchange) {
+        return BindingBuilder.bind(scanRequestQueue).to(netwatchExchange).with(RK_SCAN_REQUEST);
+    }
+    @Bean
+    public Binding scanResultBinding(Queue scanResultQueue, DirectExchange netwatchExchange) {
+        return BindingBuilder.bind(scanResultQueue).to(netwatchExchange).with(RK_SCAN_RESULT);
     }
 
     @Bean

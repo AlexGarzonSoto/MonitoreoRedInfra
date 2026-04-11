@@ -29,6 +29,24 @@ const routes = [
     name: 'alerts',
     component: () => import('@/views/AlertsView.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/topology',
+    name: 'topology',
+    component: () => import('@/views/TopologyView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/reports',
+    name: 'reports',
+    component: () => import('@/views/ReportsView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/SettingsView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

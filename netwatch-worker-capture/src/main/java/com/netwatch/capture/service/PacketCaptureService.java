@@ -141,4 +141,15 @@ public class PacketCaptureService {
     public boolean isRunning() {
         return running && handle != null && handle.isOpen();
     }
+
+    /**
+     * Cambia la interfaz de red activa y reinicia la captura.
+     * Detiene el loop actual, actualiza la propiedad y lanza un nuevo hilo virtual.
+     */
+    public synchronized void changeInterface(String newInterface) {
+        log.info("Cambiando interfaz de captura a: {}", newInterface);
+        stopCapture();
+        props.setNetworkInterface(newInterface);
+        startCapture();
+    }
 }

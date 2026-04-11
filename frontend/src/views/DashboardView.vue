@@ -2,6 +2,13 @@
   <div class="p-6 space-y-6">
     <h1 class="text-2xl font-bold text-slate-100">Dashboard</h1>
 
+    <!-- Banner de error de conexión -->
+    <div v-if="store.error"
+         class="flex items-center gap-3 bg-red-900/40 border border-red-700 rounded-xl px-5 py-3 text-red-300 text-sm">
+      <span class="text-red-400 font-bold">&#9888;</span>
+      {{ store.error }} — Verifica que el backend esté corriendo.
+    </div>
+
     <!-- Tarjetas de resumen -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard titulo="Total eventos"  :valor="store.totalCount"      color="blue"   />

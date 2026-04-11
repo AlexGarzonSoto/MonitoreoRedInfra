@@ -103,6 +103,8 @@ export const eventsAPI = {
 export const alertsAPI = {
   getAll: (params = {}) =>
     http.get('/api/v1/alerts', { params }),
+  getById: (id) =>
+    http.get(`/api/v1/alerts/${id}`),
   acknowledge: (id) =>
     http.patch(`/api/v1/alerts/${id}/acknowledge`),
   resolve: (id) =>
@@ -111,6 +113,54 @@ export const alertsAPI = {
     http.patch(`/api/v1/alerts/${id}/false-positive`),
   getSummary: () =>
     http.get('/api/v1/alerts/stats/summary')
+}
+
+// ── Reports API ─────────────────────────────────────────────────────────────
+export const reportAPI = {
+  downloadEvents: (format = 'json') =>
+    http.get('/api/v1/reports/events', {
+      params: { format },
+      responseType: 'blob'
+    }),
+  downloadAlerts: (format = 'json') =>
+    http.get('/api/v1/reports/alerts', {
+      params: { format },
+      responseType: 'blob'
+    })
+}
+
+// ── Capture API ─────────────────────────────────────────────────────────────
+export const captureAPI = {
+  listInterfaces: () =>
+    http.get('/api/v1/capture/interfaces'),
+  getStatus: () =>
+    http.get('/api/v1/capture/status'),
+  changeInterface: (interfaceName) =>
+    http.patch('/api/v1/capture/interface', { interface: interfaceName }),
+  start: () =>
+    http.post('/api/v1/capture/start'),
+  stop: () =>
+    http.post('/api/v1/capture/stop')
+}
+
+// ── Remediation API ─────────────────────────────────────────────────────────
+export const remediationAPI = {
+  getAll: () =>
+    http.get('/api/v1/remediation'),
+  getByThreatType: (threatType) =>
+    http.get(`/api/v1/remediation/${threatType}`),
+  getCves: (threatType) =>
+    http.get(`/api/v1/remediation/${threatType}/cves`)
+}
+
+// ── Scan API (vulnerabilidades estilo OpenVAS) ────────────────────────────────
+export const scanAPI = {
+  requestScan: (targetIp, targetPorts = null) =>
+    http.post('/api/v1/scan/request', { targetIp, targetPorts }),
+  listResults: () =>
+    http.get('/api/v1/scan/results'),
+  getResult: (scanId) =>
+    http.get(`/api/v1/scan/results/${scanId}`)
 }
 
 export default http

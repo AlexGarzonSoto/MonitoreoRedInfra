@@ -1,7 +1,9 @@
 package com.netwatch.gateway.service;
 
+import com.netwatch.gateway.dto.AlertDTO;
 import com.netwatch.gateway.model.Alert;
 import com.netwatch.gateway.repository.AlertRepository;
+import com.netwatch.gateway.repository.NetworkEventRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.*;
 class AlertServiceTest {
 
     @Mock private AlertRepository alertRepository;
+    @Mock private NetworkEventRepository eventRepository;
     @InjectMocks private AlertService alertService;
 
     private Alert openAlert;
@@ -51,7 +54,7 @@ class AlertServiceTest {
         Page<Alert> page = new PageImpl<>(List.of(openAlert));
         when(alertRepository.findByStatus(Alert.AlertStatus.OPEN, pageable)).thenReturn(page);
 
-        Page<Alert> result = alertService.findAll(Alert.AlertStatus.OPEN, pageable);
+        Page<AlertDTO> result = alertService.findAll(Alert.AlertStatus.OPEN, pageable);
 
         assertThat(result.getContent()).hasSize(1);
         verify(alertRepository).findByStatus(Alert.AlertStatus.OPEN, pageable);
@@ -63,7 +66,7 @@ class AlertServiceTest {
         Page<Alert> page = new PageImpl<>(List.of(openAlert));
         when(alertRepository.findAll(pageable)).thenReturn(page);
 
-        Page<Alert> result = alertService.findAll(null, pageable);
+        Page<AlertDTO> result = alertService.findAll(null, pageable);
 
         assertThat(result.getContent()).hasSize(1);
         verify(alertRepository).findAll(pageable);
@@ -75,9 +78,10 @@ class AlertServiceTest {
     void findById_conIdExistente_retornaAlerta() {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert));
 
-        Alert result = alertService.findById(alertId);
+        AlertDTO result = alertService.findById(alertId);
 
-        assertThat(result).isEqualTo(openAlert);
+        assertThat(result.id()).isEqualTo(alertId);
+        assertThat(result.title()).isEqualTo(openAlert.getTitle());
     }
 
     @Test
@@ -95,9 +99,9 @@ class AlertServiceTest {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert));
         when(alertRepository.save(openAlert)).thenReturn(openAlert);
 
-        Alert result = alertService.acknowledge(alertId);
+        AlertDTO result = alertService.acknowledge(alertId);
 
-        assertThat(result.getStatus()).isEqualTo(Alert.AlertStatus.ACKNOWLEDGED);
+        assertThat(result.status()).isEqualTo(Alert.AlertStatus.ACKNOWLEDGED.name());
         verify(alertRepository).save(openAlert);
     }
 
@@ -108,9 +112,9 @@ class AlertServiceTest {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert));
         when(alertRepository.save(openAlert)).thenReturn(openAlert);
 
-        Alert result = alertService.resolve(alertId);
+        AlertDTO result = alertService.resolve(alertId);
 
-        assertThat(result.getStatus()).isEqualTo(Alert.AlertStatus.RESOLVED);
+        assertThat(result.status()).isEqualTo(Alert.AlertStatus.RESOLVED.name());
         verify(alertRepository).save(openAlert);
     }
 
@@ -121,9 +125,9 @@ class AlertServiceTest {
         when(alertRepository.findById(alertId)).thenReturn(Optional.of(openAlert));
         when(alertRepository.save(openAlert)).thenReturn(openAlert);
 
-        Alert result = alertService.markFalsePositive(alertId);
+        AlertDTO result = alertService.markFalsePositive(alertId);
 
-        assertThat(result.getStatus()).isEqualTo(Alert.AlertStatus.FALSE_POSITIVE);
+        assertThat(result.status()).isEqualTo(Alert.AlertStatus.FALSE_POSITIVE.name());
         verify(alertRepository).save(openAlert);
     }
 

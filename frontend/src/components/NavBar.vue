@@ -35,8 +35,11 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 
 const links = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/events',    label: 'Eventos'   },
-  { to: '/alerts',    label: 'Alertas'   }
+  { to: '/dashboard', label: 'Dashboard'  },
+  { to: '/events',    label: 'Eventos'    },
+  { to: '/alerts',    label: 'Alertas'    },
+  { to: '/topology',  label: 'Topología'  },
+  { to: '/reports',   label: 'Reportes'   },
+  { to: '/settings',  label: 'Configuración' }
 ]
 </script>

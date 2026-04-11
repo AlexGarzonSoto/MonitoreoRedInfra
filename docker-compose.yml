@@ -115,16 +115,21 @@ services:
       dockerfile: netwatch-worker-capture/Dockerfile
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-capture:latest
     container_name: netwatch-worker-capture
-    # network_mode host: necesario para capturar tráfico de la interfaz física
-    network_mode: host
+    # En netwatch-net para ser accesible desde api-gateway (gestión de interfaz).
+    # cap_add mantiene permisos para captura real cuando se necesite.
+    networks: [netwatch-net]
+    ports:
+      - "8082:8082"
     cap_add:
       - NET_ADMIN
       - NET_RAW
     environment:
-      RABBITMQ_HOST:          localhost   # host porque usa network_mode: host
+      RABBITMQ_HOST:          rabbitmq
       RABBITMQ_USER:          ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS:          ${RABBITMQ_PASSWORD}
-      DB_HOST:                localhost
+      DB_HOST:                postgres
+      DB_PORT:                5432
+      DB_NAME:                ${POSTGRES_DB:-netwatch}
       DB_USER:                ${POSTGRES_USER:-netwatch}
       DB_PASS:                ${POSTGRES_PASSWORD}
       CAPTURE_INTERFACE:      ${CAPTURE_INTERFACE:-eth0}
@@ -132,6 +137,14 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
 
   # ── Worker Análisis ────────────────────────────────────────────────────────
@@ -238,6 +251,35 @@ services:
       timeout: 10s
       retries: 3
       start_period: 180s
+    restart: unless-stopped
+
+  # ── Worker Scanner (Nmap + NVD) ────────────────────────────────────────────
+  worker-scanner:
+    build:
+      context: .
+      dockerfile: netwatch-worker-scanner/Dockerfile
+    image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-scanner:latest
+    container_name: netwatch-worker-scanner
+    networks: [netwatch-net]
+    ports:
+      - "8085:8085"
+    cap_add:
+      - NET_ADMIN    # necesario para que Nmap pueda enviar sondas
+      - NET_RAW
+    environment:
+      RABBITMQ_HOST:   rabbitmq
+      RABBITMQ_USER:   ${RABBITMQ_USER:-netwatch}
+      RABBITMQ_PASS:   ${RABBITMQ_PASSWORD}
+      SCANNER_DRY_RUN: ${SCANNER_DRY_RUN:-false}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
 
   # ── Frontend ───────────────────────────────────────────────────────────────

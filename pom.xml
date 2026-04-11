@@ -50,6 +50,7 @@
     <module>netwatch-worker-analysis</module>
     <module>netwatch-worker-alerts</module>
     <module>netwatch-worker-osint</module>
+    <module>netwatch-worker-scanner</module>
   </modules>
 
   <!--
