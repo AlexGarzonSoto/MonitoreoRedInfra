@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ══════════════════════════════════════════════════════════════════════════════
+  dependency-check-suppressions.xml — NetWatch
+  ══════════════════════════════════════════════════════════════════════════════
+
+  Archivo de supresiones para OWASP Dependency-Check.
+  Documenta CVEs que son falsos positivos confirmados o dependencias donde
+  no existe parche disponible todavía.
+
+  POLÍTICA DE USO:
+  1. Solo suprimir CVEs verificados manualmente como falsos positivos
+     o cuando no existe parche upstream disponible.
+  2. Cada supresión DEBE incluir:
+     - Descripción del CVE y la librería afectada
+     - Justificación del por qué se suprime
+     - Fecha de próxima revisión (máximo 90 días en adelante)
+  3. Revisar este archivo en cada ciclo de actualización de dependencias.
+  4. Eliminar supresiones cuando exista un parche disponible.
+
+  REFERENCIA: https://jeremylong.github.io/DependencyCheck/general/suppression.html
+
+  CÓMO AGREGAR UNA NUEVA SUPRESIÓN:
+  Copiar la plantilla de ejemplo al final de este archivo y completar los campos.
+  ══════════════════════════════════════════════════════════════════════════════
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!--
+    ════════════════════════════════════════════════════════════════════════════
+    SECCIÓN: Falsos positivos confirmados
+    CVEs que Dependency-Check reporta pero NO aplican a NetWatch porque:
+    - La funcionalidad vulnerable no está expuesta/usada en este proyecto
+    - El CVE aplica a otra librería con nombre similar (error de detección)
+    - La versión exacta usada no está afectada por el CVE reportado
+    ════════════════════════════════════════════════════════════════════════════
+  -->
+
+  <!--
+    No hay supresiones activas en este momento.
+    El proyecto se inició con todas las dependencias en sus versiones más
+    recientes y parcheadas disponibles al momento del desarrollo.
+
+    Si OWASP Dependency-Check reporta un CVE en el futuro:
+    1. Verificar si aplica realmente a este proyecto
+    2. Intentar actualizar la dependencia a la versión parcheada primero
+    3. Solo agregar una supresión si no hay parche disponible
+  -->
+
+  <!--
+    ════════════════════════════════════════════════════════════════════════════
+    PLANTILLA: Copiar y adaptar para agregar nuevas supresiones
+    ════════════════════════════════════════════════════════════════════════════
+
+    <suppress until="AAAA-MM-DD">
+      <notes><![CDATA[
+        DEPENDENCIA: nombre-libreria:version
+        CVE: CVE-XXXX-YYYY
+        CVSS: X.X (CRITICAL / HIGH / MEDIUM / LOW)
+
+        DESCRIPCIÓN DEL CVE:
+        Breve descripción de qué vulnerabilidad cubre este CVE.
+
+        MOTIVO DE SUPRESIÓN (elegir uno):
+        [ ] Falso positivo: la librería detectada no es la afectada por este CVE.
+            Confusión por nombre similar: la afectada es OTRA-LIBRERIA, no esta.
+        [ ] Sin parche: el upstream (nombre-proyecto) no ha publicado parche.
+            Issue de seguimiento: https://github.com/proyecto/issues/XXXX
+        [ ] Funcionalidad no expuesta: la función vulnerable es X, que no se usa
+            en NetWatch porque [explicar por qué].
+        [ ] Ya mitigado: la contramedida Y ya cubre este vector de ataque en
+            este proyecto.
+
+        PRÓXIMA REVISIÓN: AAAA-MM-DD
+        RESPONSABLE: nombre o equipo
+      ]]></notes>
+      <cve>CVE-XXXX-YYYY</cve>
+    </suppress>
+
+  -->
+
+  <!--
+    ════════════════════════════════════════════════════════════════════════════
+    EJEMPLOS ILUSTRATIVOS (comentados — no activos)
+    ════════════════════════════════════════════════════════════════════════════
+
+    Ejemplo 1: Falso positivo por nombre similar
+
+    <suppress until="2025-09-01">
+      <notes><![CDATA[
+        DEPENDENCIA: spring-core:6.1.6
+        CVE: CVE-2024-XXXX
+        CVSS: 7.5 (HIGH)
+
+        DESCRIPCIÓN: Vulnerabilidad de path traversal en Spring Framework <= 5.3.x
+
+        MOTIVO: Falso positivo. Este CVE afecta a Spring Framework 5.3.x, pero
+        NetWatch usa Spring Boot 3.2.5 que incluye Spring Core 6.1.x, versión
+        que no está afectada. Dependency-Check confunde el nombre del artefacto.
+
+        PRÓXIMA REVISIÓN: 2025-09-01
+      ]]></notes>
+      <cve>CVE-2024-XXXX</cve>
+    </suppress>
+
+    Ejemplo 2: Sin parche disponible, funcionalidad no expuesta
+
+    <suppress until="2025-06-01">
+      <notes><![CDATA[
+        DEPENDENCIA: netty-codec-http:4.1.x
+        CVE: CVE-2024-YYYY
+        CVSS: 8.1 (HIGH)
+
+        DESCRIPCIÓN: HTTP request smuggling en Netty cuando se usa con
+        HTTP/1.1 pipelining habilitado.
+
+        MOTIVO: Sin parche upstream disponible a la fecha.
+        NetWatch no habilita HTTP/1.1 pipelining — toda la comunicación
+        HTTP va a través de Spring WebMVC en modo síncrónico sin pipelining.
+        El vector de ataque documentado en el CVE no es alcanzable.
+
+        Issue de seguimiento: https://github.com/netty/netty/issues/XXXX
+        PRÓXIMA REVISIÓN: 2025-06-01
+      ]]></notes>
+      <cve>CVE-2024-YYYY</cve>
+    </suppress>
+
+  -->
+
+</suppressions>

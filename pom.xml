@@ -199,7 +199,74 @@
           <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
           <!-- No falla si no puede conectar al NVD -->
           <failOnError>false</failOnError>
+          <!--
+            Archivo de supresiones: documenta CVEs que son falsos positivos
+            confirmados o donde no existe parche disponible todavía.
+            Cada excepción debe tener justificación y fecha de revisión.
+          -->
+          <suppressionFile>${project.basedir}/dependency-check-suppressions.xml</suppressionFile>
         </configuration>
+      </plugin>
+
+      <!--
+        CYCLONEDX SBOM (Software Bill of Materials): Genera un inventario
+        completo de todas las dependencias del proyecto en formato estándar
+        CycloneDX (bom.xml y bom.json). Incluye nombre, versión, licencia
+        y CVEs conocidos para cada componente.
+
+        El SBOM es fundamental para:
+        - Cumplimiento normativo (NIST SSDF, EO 14028)
+        - Auditoría de dependencias de terceros
+        - Detección rápida de componentes afectados por un CVE nuevo
+        - Transparencia de la cadena de suministro de software
+
+        Comando para generar manualmente:
+          mvn cyclonedx:makeAggregateBom -pl netwatch-api-gateway
+
+        El CI archiva el SBOM como artefacto en cada build.
+        El SBOM NO se versiona en git (sbom-*.json está en .gitignore).
+      -->
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <version>2.8.0</version>
+        <configuration>
+          <!-- library = aplicación con dependencias distribuibles -->
+          <projectType>library</projectType>
+          <!-- CycloneDX schema 1.5 — la más reciente con soporte CVE -->
+          <schemaVersion>1.5</schemaVersion>
+          <!-- Incluir identificador único del SBOM -->
+          <includeBomSerialNumber>true</includeBomSerialNumber>
+          <!-- Scopes a incluir en el SBOM -->
+          <includeCompileScope>true</includeCompileScope>
+          <includeProvidedScope>true</includeProvidedScope>
+          <includeRuntimeScope>true</includeRuntimeScope>
+          <includeSystemScope>true</includeSystemScope>
+          <!-- Tests no se incluyen: no van a producción -->
+          <includeTestScope>false</includeTestScope>
+          <!-- No incluir el texto completo de las licencias (reduce tamaño) -->
+          <includeLicenseText>false</includeLicenseText>
+          <!-- Generar SBOM consolidado de todos los módulos del reactor -->
+          <outputReactorProjects>true</outputReactorProjects>
+          <!-- Generar tanto XML como JSON -->
+          <outputFormat>all</outputFormat>
+          <!-- Nombre del archivo de salida: bom.xml y bom.json -->
+          <outputName>bom</outputName>
+        </configuration>
+        <executions>
+          <execution>
+            <!--
+              makeAggregateBom: genera un SBOM unificado que incluye TODOS
+              los módulos del proyecto (api-gateway + todos los workers).
+              Se ejecuta en la fase package para que el JAR ya esté compilado.
+            -->
+            <id>generate-sbom</id>
+            <phase>package</phase>
+            <goals>
+              <goal>makeAggregateBom</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <!--

@@ -1,4 +1,46 @@
-# ── IDE ────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# .gitignore — NetWatch
+# Política: nunca versionar secretos, artefactos de build, ni datos sensibles.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Secretos y variables de entorno (NUNCA subir al repo) ─────────────────────
+.env
+.env.local
+.env.*.local
+.env.prod
+.env.production
+.env.staging
+.env.dev
+.env.development
+secrets/
+secrets.yml
+secrets.yaml
+*.secret
+*_secret.txt
+
+# Credenciales de herramientas cloud
+.aws/credentials
+.gcloud/
+gcp-credentials.json
+service-account*.json
+
+# Claves y certificados privados (NUNCA en el repo)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+id_rsa
+id_ed25519
+id_ecdsa
+known_hosts
+*.jks
+*.keystore
+*.truststore
+
+# ── IDE y editores ──────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.iml
@@ -10,25 +52,27 @@
 *.eclipse
 nbproject/
 nb-configuration.xml
+*.suo
+*.user
+.vs/
 
 # ── Claude Code ────────────────────────────────────────────────────────────
 .claude/
+CLAUDE.md
 
-# ── Maven / Java ───────────────────────────────────────────────────────────
+# ── Maven / Java (artefactos de build — no versionar binarios) ─────────────
 target/
 *.class
 *.jar
 *.war
 *.ear
+*.nar
 .mvn/wrapper/maven-wrapper.jar
 release.properties
 dependency-reduced-pom.xml
-
-# ── Variables de entorno (nunca subir al repo) ─────────────────────────────
-.env
-*.env.local
-*.env.*.local
-secrets/
+buildNumber.properties
+.flattened-pom.xml
+pom.xml.versionsBackup
 
 # ── Node / Frontend ────────────────────────────────────────────────────────
 node_modules/
@@ -39,6 +83,7 @@ frontend/coverage/
 .npm/
 .pnp.*
 .yarn/
+*.tsbuildinfo
 
 # ── Python (herramientas DevSecOps: Semgrep, Checkov, Ansible) ─────────────
 __pycache__/
@@ -46,11 +91,13 @@ __pycache__/
 *.pyo
 .venv/
 venv/
+env/
 *.egg-info/
 .tox/
 .pytest_cache/
+.mypy_cache/
 
-# ── Reportes de seguridad (generados, no deben versionarse) ────────────────
+# ── Reportes de seguridad (generados en CI — no versionar resultados) ───────
 **/dependency-check-report.*
 **/spotbugsXml.xml
 **/findbugs*.xml
@@ -60,41 +107,69 @@ semgrep-report.json
 trivy-*.sarif
 trivy-*.json
 zap-report.*
+zap_report.*
 .zap/*.bak
+checkov_results/
+gitleaks-report.*
+sbom-*.json
 
-# ── Cobertura de pruebas ────────────────────────────────────────────────────
+# ── Cobertura de pruebas (artefactos) ──────────────────────────────────────
 **/target/site/jacoco/
 *.exec
+coverage/
 
 # ── Terraform / OpenTofu ───────────────────────────────────────────────────
 infrastructure/terraform/.terraform/
 infrastructure/terraform/.terraform.lock.hcl
 infrastructure/terraform/terraform.tfstate
 infrastructure/terraform/terraform.tfstate.backup
+infrastructure/terraform/terraform.tfstate.*.backup
 infrastructure/terraform/*.tfvars
 infrastructure/terraform/override.tf
 infrastructure/terraform/override.tf.json
+infrastructure/terraform/*.auto.tfvars
+infrastructure/terraform/crash.log
+*.tfplan
 
 # ── Ansible ────────────────────────────────────────────────────────────────
 infrastructure/ansible/vault_password
+infrastructure/ansible/vault_password_file
 infrastructure/ansible/*.retry
 infrastructure/ansible/inventory/hosts_generated
+infrastructure/ansible/inventory/hosts_prod
+infrastructure/ansible/group_vars/all/vault.yml
+infrastructure/ansible/.vault_pass
+
+# ── Docker (overrides locales — no compartir configs personales) ────────────
+# Los docker-compose*.yml y Dockerfiles oficiales SÍ se versionan
+docker-compose.override.yml
+.docker/
 
 # ── Logs ───────────────────────────────────────────────────────────────────
 *.log
 logs/
 spring.log
-
-# ── Docker ─────────────────────────────────────────────────────────────────
-# No excluir docker-compose.yml ni Dockerfiles
+nohup.out
 
 # ── Sistema operativo ──────────────────────────────────────────────────────
+# macOS
 .DS_Store
 .DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+.AppleDouble
+# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+*.lnk
+# Linux
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
 # ── Temporales y backups ────────────────────────────────────────────────────
 *.tmp
@@ -104,3 +179,17 @@ $RECYCLE.BIN/
 *~
 *.bak
 *.orig
+*.rej
+*.patch
+backups/
+
+# ── Bases de datos locales y dumps ─────────────────────────────────────────
+*.sql.gz
+*.dump
+*.sqlite
+*.db
+
+# ── Datos de runtime (volúmenes Docker nunca en el repo) ───────────────────
+data/
+volumes/
+pgdata/
