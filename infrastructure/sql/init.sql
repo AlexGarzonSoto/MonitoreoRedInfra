@@ -168,3 +168,29 @@ INSERT INTO users (email, password_hash, role) VALUES
      '$2b$12$Bowplj7Z.Kd9OMOqYN7ide57FxYTGDs35llqgsXh3TJb9IHby661i',
      'ANALYST')
 ON CONFLICT (email) DO NOTHING;
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- Hardening: principio de mínimo privilegio para el usuario de aplicación
+--
+-- El usuario de la aplicación (netwatch) recibe solo los permisos DML
+-- necesarios (SELECT, INSERT, UPDATE, DELETE). Se le revoca la capacidad
+-- de crear o modificar el schema de la base de datos.
+--
+-- Los cambios de schema (DDL) solo los hace el script de inicialización
+-- que se ejecuta como superusuario al arrancar el contenedor. Con
+-- spring.jpa.hibernate.ddl-auto=validate la aplicación verifica el schema
+-- pero nunca lo modifica en producción.
+-- ─────────────────────────────────────────────────────────────────────────
+
+-- Revocar capacidad de crear objetos en el schema public
+REVOKE CREATE ON SCHEMA public FROM netwatch;
+
+-- Garantizar permisos DML sobre todas las tablas existentes y futuras
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO netwatch;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO netwatch;
+
+-- Aplicar los mismos permisos DML a tablas creadas en el futuro
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO netwatch;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO netwatch;

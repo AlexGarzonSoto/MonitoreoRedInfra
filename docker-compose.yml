@@ -6,6 +6,16 @@ x-logging: &default-logging
       max-size: "50m"
       max-file: "3"
 
+# ── Hardening base compartido ──────────────────────────────────────────────
+# Aplica a todos los workers internos: sin escalada de privilegios, sistema
+# de archivos raíz de solo lectura, tmpfs para /tmp que Spring necesita.
+x-worker-security: &worker-security
+  security_opt:
+    - no-new-privileges:true
+  read_only: true
+  tmpfs:
+    - /tmp
+
 # ── Redes ───────────────────────────────────────────────────────────────────
 networks:
   netwatch-net:
@@ -28,6 +38,8 @@ services:
     image: timescale/timescaledb:latest-pg15
     container_name: netwatch-postgres
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_DB:       ${POSTGRES_DB:-netwatch}
       POSTGRES_USER:     ${POSTGRES_USER:-netwatch}
@@ -35,8 +47,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
+    # Puerto NO expuesto al host — solo accesible dentro de netwatch-net.
+    # Para acceso directo en desarrollo: docker exec -it netwatch-postgres psql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-netwatch}"]
       interval: 10s
@@ -51,14 +63,18 @@ services:
     image: rabbitmq:3.12-management-alpine
     container_name: netwatch-rabbitmq
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-netwatch}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_USER:  ${RABBITMQ_USER:-netwatch}
+      RABBITMQ_DEFAULT_PASS:  ${RABBITMQ_PASSWORD}
+      # Vhost dedicado: aísla el tráfico de NetWatch del vhost raíz.
+      # El usuario 'netwatch' solo tiene permisos sobre este vhost.
+      RABBITMQ_DEFAULT_VHOST: netwatch
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"   # UI de administración
+    # AMQP (5672) y UI de administración (15672) NO expuestos al host.
+    # Para acceder a la UI en desarrollo: ssh tunnel o docker exec.
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -73,11 +89,12 @@ services:
     image: valkey/valkey:7.2-alpine
     container_name: netwatch-valkey
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     command: valkey-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - valkey_data:/data
-    ports:
-      - "6379:6379"
+    # Puerto 6379 NO expuesto al host — solo accesible desde netwatch-net.
     healthcheck:
       test: ["CMD", "valkey-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
@@ -94,8 +111,10 @@ services:
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-api-gateway:latest
     container_name: netwatch-api-gateway
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "8080:8080"
+      - "8080:8080"   # Único punto de entrada público de la aplicación
     environment:
       DB_HOST:              postgres
       DB_PORT:              5432
@@ -105,6 +124,7 @@ services:
       RABBITMQ_HOST:        rabbitmq
       RABBITMQ_USER:        ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS:        ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST:       netwatch
       JWT_SECRET:           ${JWT_SECRET}
       JWT_REFRESH_SECRET:   ${JWT_REFRESH_SECRET}
     depends_on:
@@ -128,20 +148,22 @@ services:
       dockerfile: netwatch-worker-capture/Dockerfile
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-capture:latest
     container_name: netwatch-worker-capture
-    # En netwatch-net para ser accesible desde api-gateway (gestión de interfaz).
-    # cap_add mantiene permisos para captura real cuando se necesite.
     networks: [netwatch-net]
-    ports:
-      - "8082:8082"
+    security_opt:
+      - no-new-privileges:true
+    # NET_ADMIN y NET_RAW son necesarios para captura de paquetes con Pcap4J.
+    # Se mantienen solo en este servicio; el resto no los tiene.
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    # Puerto interno no expuesto al host; el API Gateway lo llama via netwatch-net.
     volumes:
       - /sys/class/net:/host/sys/class/net:ro
     environment:
       RABBITMQ_HOST:          rabbitmq
       RABBITMQ_USER:          ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS:          ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST:         netwatch
       DB_HOST:                postgres
       DB_PORT:                5432
       DB_NAME:                ${POSTGRES_DB:-netwatch}
@@ -164,15 +186,14 @@ services:
 
   # ── Worker Análisis ────────────────────────────────────────────────────────
   worker-analysis:
-    <<: *default-logging
+    <<: [*default-logging, *worker-security]
     build:
       context: .
       dockerfile: netwatch-worker-analysis/Dockerfile
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-analysis:latest
     container_name: netwatch-worker-analysis
     networks: [netwatch-net]
-    ports:
-      - "8081:8081"
+    # Sin puertos expuestos — servicio puramente interno de mensajería.
     environment:
       DB_HOST:       postgres
       DB_PORT:       5432
@@ -182,6 +203,7 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST: netwatch
     depends_on:
       postgres:
         condition: service_healthy
@@ -197,15 +219,14 @@ services:
 
   # ── Worker Alertas ─────────────────────────────────────────────────────────
   worker-alerts:
-    <<: *default-logging
+    <<: [*default-logging, *worker-security]
     build:
       context: .
       dockerfile: netwatch-worker-alerts/Dockerfile
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-alerts:latest
     container_name: netwatch-worker-alerts
     networks: [netwatch-net]
-    ports:
-      - "8083:8083"
+    # Sin puertos expuestos — consume de la cola alerts.notify.
     environment:
       DB_HOST:              postgres
       DB_PORT:              5432
@@ -215,6 +236,7 @@ services:
       RABBITMQ_HOST:        rabbitmq
       RABBITMQ_USER:        ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS:        ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST:       netwatch
       SMTP_HOST:            ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT:            ${SMTP_PORT:-587}
       SMTP_USER:            ${SMTP_USER:-}
@@ -237,15 +259,14 @@ services:
 
   # ── Worker OSINT ───────────────────────────────────────────────────────────
   worker-osint:
-    <<: *default-logging
+    <<: [*default-logging, *worker-security]
     build:
       context: .
       dockerfile: netwatch-worker-osint/Dockerfile
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-osint:latest
     container_name: netwatch-worker-osint
     networks: [netwatch-net]
-    ports:
-      - "8084:8084"
+    # Sin puertos expuestos — consume de la cola osint.enrich.
     environment:
       DB_HOST:       postgres
       DB_PORT:       5432
@@ -255,6 +276,7 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST: netwatch
       VALKEY_HOST:   valkey
       VALKEY_PORT:   6379
       VALKEY_PASSWORD: ${REDIS_PASSWORD}
@@ -280,15 +302,18 @@ services:
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-worker-scanner:latest
     container_name: netwatch-worker-scanner
     networks: [netwatch-net]
-    ports:
-      - "8085:8085"
+    security_opt:
+      - no-new-privileges:true
+    # NET_ADMIN y NET_RAW son necesarios para que Nmap envíe sondas raw.
     cap_add:
-      - NET_ADMIN    # necesario para que Nmap pueda enviar sondas
+      - NET_ADMIN
       - NET_RAW
+    # Sin puertos expuestos — consume de la cola scan.requests.
     environment:
       RABBITMQ_HOST:   rabbitmq
       RABBITMQ_USER:   ${RABBITMQ_USER:-netwatch}
       RABBITMQ_PASS:   ${RABBITMQ_PASSWORD}
+      RABBITMQ_VHOST:  netwatch
       SCANNER_DRY_RUN: ${SCANNER_DRY_RUN:-false}
     depends_on:
       rabbitmq:
@@ -310,8 +335,10 @@ services:
     image: ${DOCKERHUB_USERNAME:-netwatch}/netwatch-frontend:latest
     container_name: netwatch-frontend
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "3000:80"
+      - "3000:80"   # Interfaz web pública
     depends_on:
       api-gateway:
         condition: service_healthy
@@ -329,14 +356,17 @@ services:
     image: prom/prometheus:latest
     container_name: netwatch-prometheus
     networks: [netwatch-net]
-    ports:
-      - "9090:9090"
+    security_opt:
+      - no-new-privileges:true
+    # Puerto no expuesto al host — Grafana lo consume internamente via netwatch-net.
+    # Para acceso directo en desarrollo: ajustar ports en docker-compose.override.yml
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml:ro
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.retention.time=15d"
+      - "--web.listen-address=0.0.0.0:9090"
     restart: unless-stopped
 
   # ── Grafana ────────────────────────────────────────────────────────────────
@@ -345,12 +375,19 @@ services:
     image: grafana/grafana-oss:latest
     container_name: netwatch-grafana
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "3001:3000"
+      - "3001:3000"   # Dashboard de monitoreo operacional
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
-      GF_USERS_ALLOW_SIGN_UP:     "false"
-      GF_SERVER_ROOT_URL:         "http://localhost:3001"
+      GF_SECURITY_ADMIN_PASSWORD:      ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP:          "false"
+      GF_SERVER_ROOT_URL:              "http://localhost:3001"
+      # Deshabilitar funciones no usadas
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_DISABLE_GRAVATAR:   "true"
+      GF_SNAPSHOTS_EXTERNAL_ENABLED:  "false"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
@@ -364,8 +401,9 @@ services:
     image: grafana/loki:latest
     container_name: netwatch-loki
     networks: [netwatch-net]
-    ports:
-      - "3100:3100"
+    security_opt:
+      - no-new-privileges:true
+    # Puerto 3100 no expuesto — Promtail y Grafana lo usan internamente.
     volumes:
       - loki_data:/loki
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
@@ -378,6 +416,8 @@ services:
     image: grafana/promtail:latest
     container_name: netwatch-promtail
     networks: [netwatch-net]
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - /var/log:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro

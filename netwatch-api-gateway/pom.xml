@@ -185,6 +185,22 @@
     </dependency>
 
     <!-- ═══════════════════════════════════════════════════
+         RATE LIMITING
+         ═══════════════════════════════════════════════════ -->
+
+    <!--
+      bucket4j-core: implementa el algoritmo Token Bucket para
+      rate limiting. Sin dependencias externas — usa ConcurrentHashMap
+      en memoria. Protege /api/v1/auth/login contra fuerza bruta:
+      máximo 5 peticiones por minuto por IP de origen.
+    -->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j-core</artifactId>
+      <version>8.10.1</version>
+    </dependency>
+
+    <!-- ═══════════════════════════════════════════════════
          PRUEBAS
          ═══════════════════════════════════════════════════ -->
 
