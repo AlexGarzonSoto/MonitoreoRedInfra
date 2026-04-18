@@ -70,9 +70,11 @@ class ThreatDetectionServiceTest {
 
     @Test
     void analyze_dnsTunneling_smallPacket_notDetected() {
-        // Paquete DNS normal (< 512 bytes) no debe activar la regla
+        // Paquete DNS normal (< 512 bytes) no debe activar la regla de tunneling.
+        // srcPort=53 (respuesta DNS servidor→servidor) para evitar que la regla
+        // PORT_SCAN (srcPort>1024 && dstPort<1024) se active falsamente.
         Optional<ThreatDetectionService.DetectionResult> result =
-                service.analyze(packet("UDP", 12345, 53, null, 100));
+                service.analyze(packet("UDP", 53, 53, null, 100));
 
         assertThat(result).isEmpty();
     }
