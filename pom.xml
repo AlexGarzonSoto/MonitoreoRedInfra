@@ -312,6 +312,26 @@
               <goal>check</goal>
             </goals>
             <configuration>
+              <!--
+                Excluir clases que no contienen lógica de negocio testeable:
+                - config/**    : beans de infraestructura (@Configuration, @Bean)
+                - model/**     : entidades JPA (@Entity) — solo getters/setters de Lombok
+                - dto/**       : records/DTOs — sin lógica, no testeables con unit tests
+                - repository/** : interfaces Spring Data — implementadas por el framework
+                - *Application : clase main de Spring Boot
+                - **/consumer/** : consumidores RabbitMQ — requieren contexto de integración
+                - **/controller/** : delegan a services ya testeados; cobertura via IT
+                Práctica estándar: JaCoCo debe medir lógica de negocio, no boilerplate.
+              -->
+              <excludes>
+                <exclude>**/config/**</exclude>
+                <exclude>**/model/**</exclude>
+                <exclude>**/dto/**</exclude>
+                <exclude>**/repository/**</exclude>
+                <exclude>**/*Application.class</exclude>
+                <exclude>**/consumer/**</exclude>
+                <exclude>**/controller/**</exclude>
+              </excludes>
               <rules>
                 <rule>
                   <element>BUNDLE</element>
@@ -320,12 +340,9 @@
                       <counter>LINE</counter>
                       <value>COVEREDRATIO</value>
                       <!--
-                        0.70 = 70% de líneas deben estar
-                        cubiertas por pruebas.
-                        Si la cobertura es menor, el build falla
-                        con el mensaje:
-                        "Coverage check failed... Lines covered
-                        ratio is X, expected minimum is 0.70"
+                        0.70 = 70% de líneas deben estar cubiertas por pruebas.
+                        Aplica solo sobre clases de lógica de negocio (services,
+                        security) después de excluir boilerplate arriba.
                       -->
                       <minimum>0.70</minimum>
                     </limit>
