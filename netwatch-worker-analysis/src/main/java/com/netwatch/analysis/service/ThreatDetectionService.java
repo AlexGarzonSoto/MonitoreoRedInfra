@@ -26,7 +26,7 @@ import java.util.Optional;
 @Slf4j
 public class ThreatDetectionService {
 
-    private static final String DESDE = DESDE;
+    private static final String DESDE = " desde ";
 
     // Puertos de administración comúnmente atacados (BRUTE_FORCE)
     private static final java.util.Set<Integer> ADMIN_PORTS =
