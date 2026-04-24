@@ -26,6 +26,8 @@ import java.util.Optional;
 @Slf4j
 public class ThreatDetectionService {
 
+    private static final String DESDE = DESDE;
+
     // Puertos de administración comúnmente atacados (BRUTE_FORCE)
     private static final java.util.Set<Integer> ADMIN_PORTS =
             java.util.Set.of(22, 23, 3389, 5900, 21, 5985);
@@ -56,7 +58,7 @@ public class ThreatDetectionService {
                     ThreatEvent.ThreatType.BRUTE_FORCE,
                     ThreatEvent.Severity.MEDIUM,
                     "Posible brute-force al puerto " + packet.dstPort()
-                            + " desde " + packet.srcIp()));
+                            + DESDE + packet.srcIp()));
         }
 
         // 3. MALWARE_C2 — Elevación de privilegios: comunicación con C&C
@@ -65,7 +67,7 @@ public class ThreatDetectionService {
                     ThreatEvent.ThreatType.MALWARE_C2,
                     ThreatEvent.Severity.CRITICAL,
                     "Posible comunicación C2 al puerto " + packet.dstPort()
-                            + " desde " + packet.srcIp()));
+                            + DESDE + packet.srcIp()));
         }
 
         // 4. DNS_TUNNELING — Divulgación de información: DNS con payload grande
@@ -91,7 +93,7 @@ public class ThreatDetectionService {
                     ThreatEvent.Severity.HIGH,
                     "Posible exfiltración: paquete de " + packet.packetLength()
                             + " bytes al puerto " + packet.dstPort()
-                            + " desde " + packet.srcIp()));
+                            + DESDE + packet.srcIp()));
         }
 
         // 6. PORT_SCAN — Divulgación: escaneo a puertos bajos (<1024)
@@ -101,7 +103,7 @@ public class ThreatDetectionService {
                     ThreatEvent.ThreatType.PORT_SCAN,
                     ThreatEvent.Severity.MEDIUM,
                     "Posible escaneo de puertos: acceso al puerto " + packet.dstPort()
-                            + " desde " + packet.srcIp() + ":" + packet.srcPort()));
+                            + DESDE + packet.srcIp() + ":" + packet.srcPort()));
         }
 
         return Optional.empty();

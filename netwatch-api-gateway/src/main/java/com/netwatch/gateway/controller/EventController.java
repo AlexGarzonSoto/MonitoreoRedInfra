@@ -51,7 +51,7 @@ public class EventController {
 
     @GetMapping("/stats/summary")
     @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN', 'VIEWER')")
-    public ResponseEntity<?> getSummary() {
+    public ResponseEntity<java.util.Map<String, Object>> getSummary() {
         return ResponseEntity.ok(eventService.getSummary());
     }
 }

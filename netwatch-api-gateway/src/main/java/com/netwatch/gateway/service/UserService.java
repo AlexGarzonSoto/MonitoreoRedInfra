@@ -49,7 +49,8 @@ public class UserService {
 
     @Transactional
     public User changeRole(UUID id, User.Role newRole) {
-        User user = findById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + id));
         user.setRole(newRole);
         log.info("Rol cambiado: userId={}, newRole={}", id, newRole);
         return userRepository.save(user);
@@ -57,7 +58,8 @@ public class UserService {
 
     @Transactional
     public void deactivate(UUID id) {
-        User user = findById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Usuario no encontrado: " + id));
         user.setActive(false);
         userRepository.save(user);
         log.info("Usuario desactivado: {}", id);

@@ -27,6 +27,7 @@ public class PacketCaptureService {
 
     private volatile PcapHandle handle;
     private volatile boolean running = false;
+    private final java.util.Random rnd = new java.util.Random();
 
     @PostConstruct
     public void startCapture() {
@@ -94,7 +95,6 @@ public class PacketCaptureService {
         int[]    ports    = {22, 80, 443, 3389, 53, 8080, 5432, 3306};
         String[] protos   = {"TCP", "UDP"};
         String[] tcpFlags = {"SYN", "SYN,ACK", "ACK", "PSH,ACK", "RST"};
-        java.util.Random rnd = new java.util.Random();
 
         while (running) {
             try {

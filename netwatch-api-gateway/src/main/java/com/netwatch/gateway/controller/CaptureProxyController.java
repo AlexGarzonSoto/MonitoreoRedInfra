@@ -28,6 +28,9 @@ import java.util.Map;
 @Slf4j
 public class CaptureProxyController {
 
+    private static final String WORKER_UNAVAILABLE = WORKER_UNAVAILABLE;
+    private static final String KEY_ERROR = "error";
+
     private final RestTemplate restTemplate;
 
     @Value("${netwatch.capture.worker.url:http://worker-capture:8082}")
@@ -55,7 +58,7 @@ public class CaptureProxyController {
         } catch (RestClientException e) {
             log.warn("Error contactando worker-capture para cambio de interfaz: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
-                Map.of("error", "Worker-capture no disponible: " + e.getMessage()));
+                Map.of("error", WORKER_UNAVAILABLE + e.getMessage()));
         }
     }
 
@@ -69,7 +72,7 @@ public class CaptureProxyController {
         } catch (RestClientException e) {
             log.warn("Error iniciando captura: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
-                Map.of("error", "Worker-capture no disponible: " + e.getMessage()));
+                Map.of("error", WORKER_UNAVAILABLE + e.getMessage()));
         }
     }
 
@@ -82,7 +85,7 @@ public class CaptureProxyController {
         } catch (RestClientException e) {
             log.warn("Error deteniendo captura: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
-                Map.of("error", "Worker-capture no disponible: " + e.getMessage()));
+                Map.of("error", WORKER_UNAVAILABLE + e.getMessage()));
         }
     }
 
@@ -92,7 +95,7 @@ public class CaptureProxyController {
             return ResponseEntity.ok(result);
         } catch (RestClientException e) {
             log.warn("Worker-capture no accesible en {}: {}", workerCaptureUrl, e.getMessage());
-            return ResponseEntity.ok(Map.of(
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
                 "interfaces",     java.util.List.of(
                     Map.of("name", "eth0", "description", "Por defecto", "source", "fallback"),
                     Map.of("name", "lo",   "description", "Loopback",    "source", "fallback")

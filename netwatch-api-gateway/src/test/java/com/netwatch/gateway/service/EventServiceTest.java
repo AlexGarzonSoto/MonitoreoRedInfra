@@ -130,10 +130,10 @@ class EventServiceTest {
 
         var summary = eventService.getSummary();
 
-        assertThat(summary.get("total")).isEqualTo(100L);
-        assertThat(summary.get("unresolved")).isEqualTo(25L);
-        assertThat(summary.get("critical")).isEqualTo(5L);
-        assertThat(summary.get("high")).isEqualTo(10L);
-        assertThat(summary.get("medium")).isEqualTo(15L);
+        assertThat(summary).containsEntry("total", 100L)
+                           .containsEntry("unresolved", 25L)
+                           .containsEntry("critical", 5L)
+                           .containsEntry("high", 10L)
+                           .containsEntry("medium", 15L);
     }
 }

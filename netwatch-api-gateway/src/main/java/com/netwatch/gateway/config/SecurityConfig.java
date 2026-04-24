@@ -25,6 +25,11 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String ADMIN   = "ADMIN";
+    private static final String ANALYST = "ANALYST";
+    private static final String VIEWER  = "VIEWER";
+    private static final String CAPTURE_PATH = "/api/v1/capture/**";
+
     private final JwtAuthFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
 
@@ -57,17 +62,17 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/events/**").hasAnyRole("ANALYST", "ADMIN", "VIEWER")
-                .requestMatchers(HttpMethod.GET, "/api/v1/alerts/**").hasAnyRole("ANALYST", "ADMIN", "VIEWER")
-                .requestMatchers(HttpMethod.GET, "/api/v1/reports/**").hasAnyRole("VIEWER", "ANALYST", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/v1/remediation/**").hasAnyRole("VIEWER", "ANALYST", "ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/v1/capture/**").hasAnyRole("ANALYST", "ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/v1/capture/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/capture/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/v1/scan/**").hasAnyRole("ANALYST", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/scan/**").hasRole("ADMIN")
-                .requestMatchers("/api/v1/rules/**").hasAnyRole("ANALYST", "ADMIN")
-                .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/events/**").hasAnyRole(ANALYST, ADMIN, VIEWER)
+                .requestMatchers(HttpMethod.GET, "/api/v1/alerts/**").hasAnyRole(ANALYST, ADMIN, VIEWER)
+                .requestMatchers(HttpMethod.GET, "/api/v1/reports/**").hasAnyRole(VIEWER, ANALYST, ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/v1/remediation/**").hasAnyRole(VIEWER, ANALYST, ADMIN)
+                .requestMatchers(HttpMethod.GET, CAPTURE_PATH).hasAnyRole(ANALYST, ADMIN)
+                .requestMatchers(HttpMethod.PATCH, CAPTURE_PATH).hasRole(ADMIN)
+                .requestMatchers(HttpMethod.POST, CAPTURE_PATH).hasRole(ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/v1/scan/**").hasAnyRole(ANALYST, ADMIN)
+                .requestMatchers(HttpMethod.POST, "/api/v1/scan/**").hasRole(ADMIN)
+                .requestMatchers("/api/v1/rules/**").hasAnyRole(ANALYST, ADMIN)
+                .requestMatchers("/api/v1/users/**").hasRole(ADMIN)
                 .anyRequest().authenticated()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

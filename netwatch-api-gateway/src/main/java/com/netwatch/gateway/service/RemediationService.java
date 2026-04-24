@@ -33,11 +33,17 @@ public class RemediationService {
 
     // ── Base de conocimiento local ────────────────────────────────────────────
 
+    private static final String T_PORT_SCAN    = "PORT_SCAN";
+    private static final String T_BRUTE_FORCE  = "BRUTE_FORCE";
+    private static final String T_SYN_FLOOD    = "SYN_FLOOD";
+    private static final String T_DNS_TUNNELING = "DNS_TUNNELING";
+    private static final String T_NORMAL       = "NORMAL";
+
     private static final Map<String, RemediationInfo> KB = new LinkedHashMap<>();
 
     static {
-        KB.put("PORT_SCAN", new RemediationInfo(
-            "PORT_SCAN",
+        KB.put(T_PORT_SCAN, new RemediationInfo(
+            T_PORT_SCAN,
             "Escaneo de Puertos",
             "T1046 — Network Service Discovery",
             "HIGH",
@@ -61,8 +67,8 @@ public class RemediationService {
             )
         ));
 
-        KB.put("BRUTE_FORCE", new RemediationInfo(
-            "BRUTE_FORCE",
+        KB.put(T_BRUTE_FORCE, new RemediationInfo(
+            T_BRUTE_FORCE,
             "Fuerza Bruta",
             "T1110 — Brute Force",
             "CRITICAL",
@@ -88,8 +94,8 @@ public class RemediationService {
             )
         ));
 
-        KB.put("SYN_FLOOD", new RemediationInfo(
-            "SYN_FLOOD",
+        KB.put(T_SYN_FLOOD, new RemediationInfo(
+            T_SYN_FLOOD,
             "Inundación SYN (DoS)",
             "T1498.001 — Network Denial of Service: Direct Network Flood",
             "CRITICAL",
@@ -116,8 +122,8 @@ public class RemediationService {
             )
         ));
 
-        KB.put("DNS_TUNNELING", new RemediationInfo(
-            "DNS_TUNNELING",
+        KB.put(T_DNS_TUNNELING, new RemediationInfo(
+            T_DNS_TUNNELING,
             "Tunneling DNS",
             "T1071.004 — Application Layer Protocol: DNS",
             "HIGH",
@@ -144,8 +150,8 @@ public class RemediationService {
             )
         ));
 
-        KB.put("NORMAL", new RemediationInfo(
-            "NORMAL",
+        KB.put(T_NORMAL, new RemediationInfo(
+            T_NORMAL,
             "Tráfico Normal",
             "N/A",
             "INFO",
@@ -163,8 +169,8 @@ public class RemediationService {
     // ── API pública ──────────────────────────────────────────────────────────
 
     public RemediationInfo getRemediation(String threatType) {
-        String key = threatType != null ? threatType.toUpperCase() : "NORMAL";
-        return KB.getOrDefault(key, KB.get("NORMAL"));
+        String key = threatType != null ? threatType.toUpperCase() : T_NORMAL;
+        return KB.getOrDefault(key, KB.get(T_NORMAL));
     }
 
     public List<RemediationInfo> getAllRemediations() {
@@ -178,11 +184,11 @@ public class RemediationService {
     @SuppressWarnings("unchecked")
     public List<Map<String, String>> queryCves(String threatType) {
         String kw = switch (threatType.toUpperCase()) {
-            case "PORT_SCAN"     -> "network port scanning";
-            case "BRUTE_FORCE"   -> "brute force authentication";
-            case "SYN_FLOOD"     -> "SYN flood denial of service";
-            case "DNS_TUNNELING" -> "DNS tunneling exfiltration";
-            default              -> "";
+            case T_PORT_SCAN    -> "network port scanning";
+            case T_BRUTE_FORCE  -> "brute force authentication";
+            case T_SYN_FLOOD    -> "SYN flood denial of service";
+            case T_DNS_TUNNELING -> "DNS tunneling exfiltration";
+            default             -> "";
         };
         if (kw.isBlank()) return Collections.emptyList();
 

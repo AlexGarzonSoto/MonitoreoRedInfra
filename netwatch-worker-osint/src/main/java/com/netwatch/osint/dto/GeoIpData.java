@@ -14,10 +14,11 @@ public record GeoIpData(
         String as,      // Nombre del sistema autónomo (ASN)
         String query    // IP consultada (echo de la petición)
 ) {
+    private static final String UNKNOWN = "Unknown";
+
     /** Retorna un resultado vacío cuando la consulta falla. */
     public static GeoIpData unknown(String ip) {
-        return new GeoIpData("fail", "Unknown", "Unknown",
-                0.0, 0.0, "Unknown", ip);
+        return new GeoIpData("fail", UNKNOWN, UNKNOWN, 0.0, 0.0, UNKNOWN, ip);
     }
 
     public boolean isSuccess() {

@@ -36,7 +36,7 @@ public class NmapScannerService {
     public List<String> scan(String targetIp, List<Integer> targetPorts) {
         if (dryRun) {
             log.info("[DRY-RUN] Simulando escaneo Nmap de {}", targetIp);
-            return simulatedPorts(targetIp);
+            return simulatedPorts();
         }
 
         List<String> cmd = buildNmapCommand(targetIp, targetPorts);
@@ -55,10 +55,8 @@ public class NmapScannerService {
                     log.debug("nmap: {}", line);
                     // Las líneas de puertos abiertos tienen el formato:
                     // "22/tcp   open  ssh     OpenSSH 8.2p1"
-                    if (line.contains("/tcp") || line.contains("/udp")) {
-                        if (line.contains("open")) {
-                            openPorts.add(line.trim());
-                        }
+                    if ((line.contains("/tcp") || line.contains("/udp")) && line.contains("open")) {
+                        openPorts.add(line.trim());
                     }
                 }
             }
@@ -72,6 +70,10 @@ public class NmapScannerService {
             log.info("Escaneo de {} completado — {} puertos abiertos", targetIp, openPorts.size());
             return openPorts;
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Escaneo de {} interrumpido", targetIp);
+            return openPorts;
         } catch (Exception e) {
             log.error("Error ejecutando Nmap para {}: {}", targetIp, e.getMessage());
             throw new RuntimeException("Nmap falló: " + e.getMessage(), e);
@@ -104,7 +106,7 @@ public class NmapScannerService {
      * Simulación para entornos sin red o pruebas de integración.
      * Devuelve puertos típicos de un servidor Linux expuesto.
      */
-    private List<String> simulatedPorts(String targetIp) {
+    private List<String> simulatedPorts() {
         return List.of(
             "22/tcp   open  ssh      OpenSSH 7.4p1 Debian",
             "80/tcp   open  http     Apache httpd 2.4.41",

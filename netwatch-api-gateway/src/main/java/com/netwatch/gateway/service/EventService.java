@@ -52,7 +52,8 @@ public class EventService {
 
     @Transactional
     public NetworkEvent resolve(UUID id) {
-        NetworkEvent event = findById(id);
+        NetworkEvent event = eventRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Evento no encontrado: " + id));
         event.setResolved(true);
         log.info("Evento resuelto: {}", id);
         return eventRepository.save(event);

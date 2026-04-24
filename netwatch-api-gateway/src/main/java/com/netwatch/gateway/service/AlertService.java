@@ -21,6 +21,8 @@ import java.util.UUID;
 @Slf4j
 public class AlertService {
 
+    private static final String MSG_NOT_FOUND = MSG_NOT_FOUND;
+
     private final AlertRepository alertRepository;
     private final NetworkEventRepository eventRepository;
 
@@ -41,7 +43,7 @@ public class AlertService {
     @Transactional(readOnly = true)
     public AlertDTO findById(UUID id) {
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
+                .orElseThrow(() -> new NoSuchElementException(MSG_NOT_FOUND + id));
         NetworkEvent event = alert.getEventId() != null
                 ? eventRepository.findById(alert.getEventId()).orElse(null)
                 : null;
@@ -51,7 +53,7 @@ public class AlertService {
     @Transactional
     public AlertDTO acknowledge(UUID id) {
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
+                .orElseThrow(() -> new NoSuchElementException(MSG_NOT_FOUND + id));
         alert.setStatus(Alert.AlertStatus.ACKNOWLEDGED);
         alert = alertRepository.save(alert);
         log.info("Alerta reconocida: {}", id);
@@ -61,7 +63,7 @@ public class AlertService {
     @Transactional
     public AlertDTO resolve(UUID id) {
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
+                .orElseThrow(() -> new NoSuchElementException(MSG_NOT_FOUND + id));
         alert.setStatus(Alert.AlertStatus.RESOLVED);
         alert = alertRepository.save(alert);
         log.info("Alerta resuelta: {}", id);
@@ -71,7 +73,7 @@ public class AlertService {
     @Transactional
     public AlertDTO markFalsePositive(UUID id) {
         Alert alert = alertRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Alerta no encontrada: " + id));
+                .orElseThrow(() -> new NoSuchElementException(MSG_NOT_FOUND + id));
         alert.setStatus(Alert.AlertStatus.FALSE_POSITIVE);
         alert = alertRepository.save(alert);
         log.info("Alerta marcada como falso positivo: {}", id);

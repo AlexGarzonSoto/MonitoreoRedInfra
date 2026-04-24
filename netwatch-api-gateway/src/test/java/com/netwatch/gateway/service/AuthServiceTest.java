@@ -173,6 +173,6 @@ class AuthServiceTest {
     @Test
     void logout_noLanzaExcepcion() {
         // logout solo registra en log — no debe lanzar excepción
-        authService.logout("Bearer some.valid.token");
+        assertThatNoException().isThrownBy(() -> authService.logout("Bearer some.valid.token"));
     }
 }

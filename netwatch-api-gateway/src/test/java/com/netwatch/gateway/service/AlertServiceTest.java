@@ -142,9 +142,9 @@ class AlertServiceTest {
 
         Map<String, Long> summary = alertService.getSummary();
 
-        assertThat(summary.get("open")).isEqualTo(10L);
-        assertThat(summary.get("acknowledged")).isEqualTo(3L);
-        assertThat(summary.get("resolved")).isEqualTo(7L);
-        assertThat(summary.get("falsePositive")).isEqualTo(2L);
+        assertThat(summary).containsEntry("open", 10L)
+                           .containsEntry("acknowledged", 3L)
+                           .containsEntry("resolved", 7L)
+                           .containsEntry("falsePositive", 2L);
     }
 }
