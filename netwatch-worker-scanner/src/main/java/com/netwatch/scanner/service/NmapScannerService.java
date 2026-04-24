@@ -42,12 +42,11 @@ public class NmapScannerService {
         List<String> cmd = buildNmapCommand(targetIp, targetPorts);
         log.info("Ejecutando: {}", String.join(" ", cmd));
 
+        List<String> openPorts = new ArrayList<>();
         try {
             Process process = new ProcessBuilder(cmd)
                     .redirectErrorStream(true)
                     .start();
-
-            List<String> openPorts = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream()))) {
                 String line;
