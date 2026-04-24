@@ -1,0 +1,15 @@
+*/target/
+.git/
+.gitignore
+*.md
+.env
+.env.*
+!.env.example
+docs/
+infrastructure/terraform/
+infrastructure/ansible/
+infrastructure/k8s/
+monitoring/
+.github/
+frontend/node_modules/
+frontend/dist/

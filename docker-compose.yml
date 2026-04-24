@@ -50,11 +50,11 @@ services:
     # Puerto NO expuesto al host — solo accesible dentro de netwatch-net.
     # Para acceso directo en desarrollo: docker exec -it netwatch-postgres psql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-netwatch}"]
+      test: ["CMD-SHELL", "psql -U ${POSTGRES_USER:-netwatch} -d ${POSTGRES_DB:-netwatch} -c 'SELECT 1 FROM users LIMIT 1' > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 60s
+      retries: 30
+      start_period: 30s
     restart: unless-stopped
 
   # ── RabbitMQ ──────────────────────────────────────────────────────────────
@@ -78,9 +78,9 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     restart: unless-stopped
 
   # ── Valkey (reemplaza Redis, protocolo 100% compatible) ───────────────────
@@ -131,7 +131,7 @@ services:
       postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
@@ -173,15 +173,15 @@ services:
       CAPTURE_ENABLED:        ${CAPTURE_ENABLED:-true}
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
       postgres:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 180s
     restart: unless-stopped
 
   # ── Worker Análisis ────────────────────────────────────────────────────────
@@ -208,7 +208,7 @@ services:
       postgres:
         condition: service_healthy
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health || exit 1"]
       interval: 30s
@@ -248,7 +248,7 @@ services:
       ALERT_WEBHOOK_URL:    ${ALERT_WEBHOOK_URL:-}
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
       interval: 30s
@@ -281,16 +281,18 @@ services:
       VALKEY_PORT:   6379
       VALKEY_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
-      rabbitmq:
+      postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
       valkey:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 180s
+      retries: 5
+      start_period: 300s
     restart: unless-stopped
 
   # ── Worker Scanner (Nmap + NVD) ────────────────────────────────────────────
@@ -317,13 +319,13 @@ services:
       SCANNER_DRY_RUN: ${SCANNER_DRY_RUN:-false}
     depends_on:
       rabbitmq:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 180s
     restart: unless-stopped
 
   # ── Frontend ───────────────────────────────────────────────────────────────
@@ -341,7 +343,7 @@ services:
       - "3000:80"   # Interfaz web pública
     depends_on:
       api-gateway:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://0.0.0.0:80/ > /dev/null 2>&1 || exit 1"]
       interval: 30s

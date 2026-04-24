@@ -111,16 +111,20 @@ docker compose logs -f
 El orden de inicio es automático gracias a `depends_on` + healthchecks:
 
 ```
-1. postgres     → healthcheck: pg_isready (espera hasta 60s)
-2. rabbitmq     → healthcheck: rabbitmq-diagnostics ping (espera hasta 30s)
+1. postgres     → healthcheck: SELECT 1 FROM users (confirma que init.sql terminó)
+                  condition: service_healthy — los workers esperan aquí
+2. rabbitmq     → healthcheck: rabbitmq-diagnostics ping (start_period: 60s)
+                  condition: service_started — los workers arrancan en paralelo
+                  Spring AMQP reintenta la conexión automáticamente cada 5s
 3. valkey       → healthcheck: valkey-cli ping
-4. api-gateway  → healthcheck: /actuator/health (start-period: 180s)
-5. worker-*     → cada uno espera a sus dependencias
+                  condition: service_healthy — solo worker-osint depende de él
+4. api-gateway  → healthcheck: /actuator/health (start-period: 60s)
+5. worker-*     → cada uno arranca tras postgres healthy + rabbitmq started
 6. frontend     → espera api-gateway healthy
 7. prometheus, grafana, loki, promtail → sin dependencias críticas
 ```
 
-> El API Gateway tarda 60-180 segundos en estar listo la primera vez porque Spring Boot debe conectar a PostgreSQL, ejecutar el schema SQL de TimescaleDB y registrar los exchanges de RabbitMQ.
+> El API Gateway tarda 60-90 segundos en estar listo la primera vez porque Spring Boot debe conectar a PostgreSQL, ejecutar la validación del schema TimescaleDB y establecer los canales AMQP con RabbitMQ. Si RabbitMQ aún no está completamente listo, Spring AMQP reintenta la conexión automáticamente sin reiniciar el contenedor.
 
 ### Paso 4 — Verificar la instalación
 

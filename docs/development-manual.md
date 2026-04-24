@@ -606,7 +606,7 @@ worker-nuevo:
     RABBITMQ_PASS: ${RABBITMQ_PASSWORD}
   depends_on:
     rabbitmq:
-      condition: service_healthy
+      condition: service_started   # Spring AMQP reintenta la conexión automáticamente
   healthcheck:
     test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health || exit 1"]
     interval: 30s
@@ -715,6 +715,21 @@ git push origin feat/mi-nueva-funcionalidad
 ---
 
 ## 11. Troubleshooting frecuente
+
+### Error: `dependency failed to start: container netwatch-rabbitmq is unhealthy`
+
+Este error ocurría con `condition: service_healthy` para RabbitMQ cuando Docker Compose evaluaba el estado en el instante exacto en que el broker estaba transitando de `starting` a `healthy`. La arquitectura actual lo resuelve de dos formas:
+
+1. Los servicios usan `condition: service_started` para RabbitMQ — arrancan en paralelo sin esperar el healthcheck
+2. Spring AMQP reintenta la conexión automáticamente cada 5 segundos (`recovery-interval=5000`) hasta establecerla
+
+Si el error persiste de forma inesperada, verificar que las propiedades de resiliencia AMQP están presentes en el `application.properties` del servicio afectado:
+
+```properties
+spring.rabbitmq.connection-timeout=30000
+spring.rabbitmq.listener.simple.recovery-interval=5000
+spring.rabbitmq.listener.simple.missing-queues-fatal=false
+```
 
 ### El API Gateway no arranca — `Connection refused` a PostgreSQL
 
