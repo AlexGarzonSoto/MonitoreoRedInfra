@@ -21,7 +21,7 @@ import java.util.UUID;
 @Slf4j
 public class AlertService {
 
-    private static final String MSG_NOT_FOUND = MSG_NOT_FOUND;
+    private static final String MSG_NOT_FOUND = "Alerta no encontrada: ";
 
     private final AlertRepository alertRepository;
     private final NetworkEventRepository eventRepository;

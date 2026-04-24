@@ -28,7 +28,7 @@ import java.util.Map;
 @Slf4j
 public class CaptureProxyController {
 
-    private static final String WORKER_UNAVAILABLE = WORKER_UNAVAILABLE;
+    private static final String WORKER_UNAVAILABLE = "Worker-capture no disponible: ";
     private static final String KEY_ERROR = "error";
 
     private final RestTemplate restTemplate;
