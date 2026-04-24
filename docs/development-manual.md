@@ -473,7 +473,7 @@ El reporte muestra:
 
 | Módulo | Clase de test | Casos cubiertos |
 |--------|--------------|----------------|
-| api-gateway | `AuthServiceTest` | Login exitoso, password incorrecto, email no existe, cuenta inactiva, refresh válido, refresh inválido (8 casos) |
+| api-gateway | `AuthServiceTest` | Login exitoso, password incorrecto, email no existe, cuenta inactiva, refresh válido, refresh inválido, logout sin excepción (9 casos) |
 | api-gateway | `JwtTokenProviderTest` | Generación, validación, expiración, claims de access y refresh tokens (12 casos) |
 | api-gateway | `EventServiceTest` | Listado paginado, búsqueda por ID, resolución, resumen estadístico (7 casos) |
 | api-gateway | `AlertServiceTest` | Acknowledge, resolve, false-positive, listado por estado (9 casos) |
@@ -651,6 +651,7 @@ public void procesar(MiModelo payload) {
 - **Estilo:** Google Java Style Guide
 - **Lombok:** usar `@Data`, `@Builder`, `@Slf4j`, `@RequiredArgsConstructor`
 - **Transacciones:** `@Transactional(readOnly = true)` por defecto; `@Transactional` solo para escrituras
+- **Self-call y AOP:** nunca llamar un método `@Transactional` mediante `this.metodo()` dentro del mismo bean — Spring AOP opera a través de un proxy y las llamadas internas lo evitan, perdiendo la transacción. Invocar siempre el repositorio directamente o separar en un bean auxiliar.
 - **Inyección de dependencias:** siempre por constructor (`@RequiredArgsConstructor`), nunca `@Autowired` en campos
 
 ### Naming
@@ -818,6 +819,22 @@ docker build -f netwatch-api-gateway/Dockerfile -t netwatch-api-gateway:test .
 # INCORRECTO — dentro de la carpeta del servicio no encuentra el pom.xml padre
 cd netwatch-api-gateway && docker build -t netwatch-api-gateway:test .
 ```
+
+### API Gateway devuelve 503 al consultar `/api/v1/capture/**`
+
+El `CaptureProxyController` actúa como proxy hacia `worker-capture` (puerto 8082). Si ese servicio no está levantado, el gateway responde **503 Service Unavailable** — comportamiento esperado y correcto:
+
+```bash
+# Verificar que worker-capture esté corriendo
+docker compose ps worker-capture
+
+# Levantarlo si está detenido
+docker compose up -d worker-capture
+
+# El 503 desaparece en cuanto el worker responde en :8082/actuator/health
+```
+
+---
 
 ### Prometheus no carga las reglas de alerta
 
