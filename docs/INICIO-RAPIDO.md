@@ -1,7 +1,7 @@
 # Guía de inicio rápido — NetWatch
 
 <p align="center">
-  <img src="imagenes/Logo.png" width="600">
+  <img src="imagenes/Logo.png" width="300">
 </p>
 
 Esta guía te lleva desde cero hasta tener NetWatch funcionando en tu computador, paso a paso, sin conocimientos técnicos previos.
