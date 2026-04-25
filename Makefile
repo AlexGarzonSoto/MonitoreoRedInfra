@@ -3,6 +3,9 @@
 #  Uso: make <comando>   Ejemplo: make iniciar
 # ──────────────────────────────────────────────────────────────────────────────
 
+# Forzar bash: la sintaxis &> y command -v no funciona en sh/dash (Debian/MX Linux)
+SHELL := /bin/bash
+
 .DEFAULT_GOAL := ayuda
 .PHONY: ayuda configurar iniciar detener estado logs reiniciar limpiar abrir verificar
 
