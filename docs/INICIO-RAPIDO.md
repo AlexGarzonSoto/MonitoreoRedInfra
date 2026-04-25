@@ -1,5 +1,9 @@
 # Guía de inicio rápido — NetWatch
 
+<p align="center">
+  <img src="imagenes/Logo.png" width="600">
+</p>
+
 Esta guía te lleva desde cero hasta tener NetWatch funcionando en tu computador, paso a paso, sin conocimientos técnicos previos.
 
 **Tiempo estimado:** 15-20 minutos (la mayor parte es espera mientras descarga)
