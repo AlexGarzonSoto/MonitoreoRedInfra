@@ -22,6 +22,20 @@ NetWatch es una aplicación que **monitorea tu red en tiempo real** y te avisa c
 
 Docker es el programa que ejecuta NetWatch. Sin él no funciona nada.
 
+
+
+```mermaid
+flowchart TD
+    A[Inicio instalación Docker] --> B{Sistema Operativo}
+
+    B -->|Windows| C[Instalar Docker Desktop + WSL2]
+    B -->|macOS| D[Instalar Docker Desktop Mac]
+    B -->|Linux| E[Ejecutar script curl get.docker.com]
+
+    C --> F[Docker listo]
+    D --> F
+    E --> F
+
 | Sistema operativo | Cómo instalarlo |
 |---|---|
 | **Windows 10/11** | Descarga e instala [Docker Desktop para Windows](https://docs.docker.com/desktop/install/windows-install/). Durante la instalación acepta activar WSL 2 si te lo pide. |
