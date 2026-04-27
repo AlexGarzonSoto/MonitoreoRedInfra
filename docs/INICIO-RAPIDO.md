@@ -26,7 +26,7 @@ Docker es el programa que ejecuta NetWatch. Sin él no funciona nada.
 |---|---|
 | **Windows 10/11** | Descarga e instala [Docker Desktop para Windows](https://docs.docker.com/desktop/install/windows-install/). Durante la instalación acepta activar WSL 2 si te lo pide. |
 | **macOS** | Descarga e instala [Docker Desktop para Mac](https://docs.docker.com/desktop/install/mac-install/) |
-| **Ubuntu / Debian / MX Linux** | Abre una terminal y ejecuta: `curl -fsSL https://get.docker.com \| sh && sudo usermod -aG docker $USER` — luego cierra sesión y vuelve a entrar |
+| **Ubuntu / Debian / MX Linux** | Abre una terminal y ejecuta: `curl -fsSL https://get.docker.com \| sh && sudo usermod -aG docker $USER`    — luego cierra sesión y vuelve a entrar |
 
 **¿Cómo verificar que Docker está instalado?**
 
