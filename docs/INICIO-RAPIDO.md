@@ -10,13 +10,12 @@
 
 ---
 
-## Antes de empezar — ¿qué es NetWatch?
+## ¿qué es NetWatch?
 
 NetWatch es una aplicación que **monitorea tu red en tiempo real** y te avisa cuando detecta actividad sospechosa, como alguien intentando adivinar contraseñas, escanear tus puertos o realizar un ataque. Todo se visualiza en un panel web desde tu navegador.
 
 ---
-
-## Lo que necesitas instalar (solo una vez)
+## PASOS ##
 
 ### 1. Docker
 
