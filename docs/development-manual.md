@@ -1,6 +1,10 @@
-# Manual del Desarrollador — NetWatch
+# 👨‍💻 Manual del Desarrollador — NetWatch
 
-## Tabla de contenidos
+# 📌 Descripción
+
+Este documento explica cómo configurar, ejecutar y extender NetWatch desde el punto de vista de desarrollo.
+
+## 📑 Tabla de contenidos
 
 1. [Requisitos de entorno](#1-requisitos-de-entorno)
 2. [Clonar y configurar el proyecto](#2-clonar-y-configurar-el-proyecto)
@@ -18,7 +22,7 @@
 
 ## 1. Requisitos de entorno
 
-### Herramientas obligatorias para desarrollo
+### 🔧 Herramientas obligatorias para desarrollo
 
 | Herramienta | Versión | Instalación en Debian/Ubuntu |
 |-------------|---------|------------------------------|
@@ -29,7 +33,7 @@
 | Git | 2.x | `sudo apt install git` |
 | openssl | cualquier | `sudo apt install openssl` |
 
-### Herramientas opcionales (recomendadas)
+### 🔧 Herramientas opcionales (recomendadas)
 
 | Herramienta | Propósito |
 |-------------|-----------|
@@ -39,7 +43,7 @@
 | Bruno (API client) | Alternativa open source a Postman |
 | Node.js 20 + npm | Desarrollar el frontend fuera de Docker |
 
-### Verificar instalación
+### ✅ Verificar instalación
 
 ```bash
 java -version
@@ -60,7 +64,7 @@ git --version
 
 ---
 
-## 2. Clonar y configurar el proyecto
+## 📥 2. Clonar y configurar el proyecto
 
 ### Clonar el repositorio
 
@@ -69,13 +73,13 @@ git clone https://github.com/AlexGarzonSoto/MonitoreoRedInfra.git
 cd MonitoreoRedInfra
 ```
 
-### Crear el archivo de variables de entorno
+### ⚙️ Crear el archivo de variables de entorno
 
 ```bash
 cp .env.example .env
 ```
 
-### Generar claves seguras
+### 🔐 Generar claves seguras
 
 Las claves JWT deben tener **mínimo 64 caracteres** (512 bits para HMAC-SHA256). Generarlas con:
 
@@ -248,7 +252,7 @@ proyectoFinal/
 
 ## 4. Compilar y ejecutar localmente
 
-### Opción A: Docker Compose completo (recomendado para desarrollo)
+### 🚀 Opción A: Docker Compose completo (recomendado para desarrollo)
 
 ```bash
 # Levantar todos los servicios
@@ -556,7 +560,7 @@ spring.datasource.password=${DB_PASS:netwatch123}
 
 ## 8. Desarrollar un nuevo microservicio
 
-### Patrón estándar de un worker
+### 🏗️ Patrón estándar de un worker
 
 Todos los workers siguen el mismo patrón Maven + Spring Boot:
 
