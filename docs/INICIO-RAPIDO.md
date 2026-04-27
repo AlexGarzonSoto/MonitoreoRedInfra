@@ -25,6 +25,29 @@ flowchart LR
     A --> W[Worker]
     W --> D[(Base de Datos)]
 
+
+---
+
+# 🚀 CON ESTO YA FUNCIONA
+
+✔️ Diagrama renderiza  
+✔️ Texto vuelve a la normalidad  
+✔️ GitHub deja de mostrar error  
+
+---
+
+# 💙 Si quieres seguimos
+
+Ahora que ya entendiste esto, el siguiente nivel es:
+
+👉 Diagrama de autenticación 🔐  
+👉 Diagrama Docker 🐳  
+👉 Diagrama OWASP 🔥  
+
+Solo dime:
+
+👉 **“hagamos el siguiente”** 😄
+
 # 🚀 PASOS 
 
 ## 📦 Paso 1 — Instalar Docker
