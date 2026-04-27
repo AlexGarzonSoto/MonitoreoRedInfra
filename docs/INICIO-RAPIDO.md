@@ -92,7 +92,7 @@ Este comando hace dos cosas automáticamente:
     make iniciar
 ```
 
-> Si ves un error que dice "Docker no está instalado", asegúrate de que Docker Desktop esté **abierto y ejecutándose** (en Windows/Mac verás el ícono de ballena en la barra de tareas).
+### >> ⚠️ Nota: Si ves un error que dice "Docker no está instalado", asegúrate de que Docker Desktop esté **abierto y ejecutándose** (en Windows/Mac verás el ícono de ballena en la barra de tareas).
 
 ---
 
@@ -196,7 +196,7 @@ Docker Desktop en Windows requiere que WSL 2 esté activado. Si no lo tienes:
 
 ### ▶️ "Veo muchos errores en la terminal al iniciar"
 
-Los primeros 2 minutos es normal ver mensajes de error mientras los servicios se conectan entre sí. Si después de 5 minutos el panel sigue sin abrir, ejecuta:
+### >> ⚠️ Los primeros 2 minutos es normal ver mensajes de error mientras los servicios se conectan entre sí. Si después de 5 minutos el panel sigue sin abrir, ejecuta:
 
 ```bash
 make logs
