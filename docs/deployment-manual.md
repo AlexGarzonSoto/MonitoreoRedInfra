@@ -1,4 +1,4 @@
-# 🚀 Manual de Despliegue — NetWatch
+# 🚀 Manual de Despliegue Tecnico — NetWatch
 
 ##  📚 Tabla de contenidos
 
