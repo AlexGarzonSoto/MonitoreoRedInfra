@@ -10,12 +10,12 @@
 
 ---
 
-## ¿qué es NetWatch?
+# ¿qué es NetWatch?
 
 NetWatch es una aplicación que **monitorea tu red en tiempo real** y te avisa cuando detecta actividad sospechosa, como alguien intentando adivinar contraseñas, escanear tus puertos o realizar un ataque. Todo se visualiza en un panel web desde tu navegador.
 
 ---
-## PASOS ##
+# PASOS ##
 
 ## 📦 Paso 1 — Instalar Docker
 
@@ -171,7 +171,7 @@ Estás usando CMD o PowerShell de Windows. Cierra esa ventana y abre **Git Bash*
 
 ---
 
-### "No puedo abrir http://localhost:3000"
+### ▶️ "No puedo abrir http://localhost:3000"
 
 NetWatch puede tardar hasta 3 minutos en estar completamente listo. Espera un poco y recarga la página. Si sigue sin funcionar, ejecuta en tu terminal:
 
@@ -183,7 +183,7 @@ Revisa que todos los servicios aparezcan como `running` o `healthy`. Si alguno d
 
 ---
 
-### "Docker Desktop no arranca en Windows"
+### ▶️ "Docker Desktop no arranca en Windows"
 
 Docker Desktop en Windows requiere que WSL 2 esté activado. Si no lo tienes:
 
@@ -194,7 +194,7 @@ Docker Desktop en Windows requiere que WSL 2 esté activado. Si no lo tienes:
 
 ---
 
-### "Veo muchos errores en la terminal al iniciar"
+### ▶️ "Veo muchos errores en la terminal al iniciar"
 
 Los primeros 2 minutos es normal ver mensajes de error mientras los servicios se conectan entre sí. Si después de 5 minutos el panel sigue sin abrir, ejecuta:
 
@@ -206,7 +206,7 @@ Busca líneas que digan `ERROR` en mayúsculas y comparte esos mensajes si neces
 
 ---
 
-### "Olvidé la contraseña de administrador"
+### ▶️ "Olvidé la contraseña de administrador"
 
 Las credenciales iniciales siempre son:
 - Usuario: `admin@netwatch.local`
@@ -224,7 +224,7 @@ make iniciar
 
 ---
 
-### "Quiero parar NetWatch para no consumir recursos"
+### ▶️ "Quiero parar NetWatch para no consumir recursos"
 
 ```bash
 make detener
@@ -234,7 +234,7 @@ Esto para todos los servicios pero conserva todos tus datos. La próxima vez que
 
 ---
 
-## Para las personas más curiosas
+# ▶️ Para las personas más curiosas
 
 Si quieres entender en detalle cómo funciona NetWatch por dentro, los manuales técnicos están en la carpeta `docs/`:
 
@@ -247,7 +247,7 @@ Si quieres entender en detalle cómo funciona NetWatch por dentro, los manuales 
 
 ---
 
-## ¿Algo no funcionó?
+# ▶️ ¿Algo no funcionó?
 
 Abre un issue en el repositorio del proyecto:
 [github.com/AlexGarzonSoto/MonitoreoRedInfra/issues](https://github.com/AlexGarzonSoto/MonitoreoRedInfra/issues)
