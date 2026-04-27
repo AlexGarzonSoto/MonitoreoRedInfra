@@ -22,8 +22,9 @@ flowchart LR
     Frontend --> API
     API --> Worker
     Worker --> DB
-
 ---
+
+
 # PASOS ##
 
 ## 📦 Paso 1 — Instalar Docker
