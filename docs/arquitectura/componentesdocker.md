@@ -25,3 +25,18 @@ flowchart LR
     A --> W
     W --> DB
 ```
+## 🔗 Relación con el despliegue
+
+Este diagrama se implementa directamente en el archivo:
+
+- `docker-compose.yml`
+
+Cada contenedor corresponde a un servicio definido allí, por ejemplo:
+
+- `frontend`
+- `api`
+- `rabbitmq`
+- `worker`
+- `db`
+
+La red entre contenedores es gestionada automáticamente por Docker Compose, permitiendo la comunicación interna mediante nombres de servicio.
