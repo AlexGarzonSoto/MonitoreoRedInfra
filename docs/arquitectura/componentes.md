@@ -10,9 +10,11 @@ flowchart LR
     A --> W2[Worker Alertas]
     W1 --> DB[(Base de Datos)]
     W2 --> DB
+```
+
 ### 📌 Qué debes mostrar:
 - Contenedores  
 - Red Docker  
 - Servicios  
 
----
+
