@@ -2,7 +2,7 @@
 
 Este diagrama muestra cómo se despliega NetWatch utilizando contenedores Docker. Cada componente del sistema se ejecuta de forma aislada, lo que garantiza consistencia en cualquier entorno.
 
-## 🧠 Descripción de la infraestructura
+##  Descripción de la infraestructura
 
 - **Frontend Container:** Ejecuta la interfaz web accesible desde el navegador.
 - **API Container:** Gestiona las solicitudes y la lógica del sistema.
