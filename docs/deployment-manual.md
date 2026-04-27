@@ -145,15 +145,6 @@ echo "Token obtenido: ${TOKEN:0:20}..."
 # Dashboard web
 xdg-open http://localhost:3000
 ```
-
-## 📊 Flujo de arranque del sistema
-
-flowchart TD
-    postgres --> api-gateway
-    rabbitmq --> api-gateway
-    api-gateway --> workers
-    workers --> frontend
-
     
 ### Comandos de gestión diaria
 
@@ -175,7 +166,7 @@ docker compose up -d
 
 ---
 
-## 3. Despliegue en producción — TLS con Caddy
+## 🔐 3. Despliegue en producción — TLS con Caddy
 
 El archivo `docker-compose.prod.yml` es un **override de producción** que añade sobre el stack base:
 
@@ -183,7 +174,7 @@ El archivo `docker-compose.prod.yml` es un **override de producción** que añad
 - **Límites de recursos** (CPU y RAM) por cada servicio
 - Los puertos directos de `frontend` y `grafana` dejan de exponerse (solo accesibles via Caddy)
 
-### Arquitectura de red en producción
+## 🌐 Arquitectura de red en producción
 
 ```
 Internet
@@ -207,7 +198,7 @@ Caddy :80/:443   ← TLS automático Let's Encrypt
 
 3. Caddy necesita poder contactar los servidores de Let's Encrypt (ACME). Verificar conectividad saliente en el puerto 443.
 
-### Configuración del `.env` para producción
+## ▶️ Configuración del `.env` para producción
 
 ```bash
 # Agregar estas variables al .env existente:
@@ -306,7 +297,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ---
 
-## 4. Pasar de simulación a captura real de red
+## 📡 4. Pasar de simulación a captura real de red
 
 ### Entender el modo actual
 
@@ -325,7 +316,7 @@ El `worker-capture` implementa un sistema de fallback en 3 niveles:
 docker compose logs worker-capture | grep -iE "captura|simul|interfaz|pcap" | tail -10
 ```
 
-### Verificar las interfaces disponibles en el servidor
+## 🔍  Verificar las interfaces disponibles en el servidor
 
 ```bash
 # En el servidor host — listar todas las interfaces
@@ -410,7 +401,7 @@ docker compose up -d --no-deps worker-capture
 
 ---
 
-## 5. Despliegue con IaC — OpenTofu + Ansible
+## ☁️ 5. Despliegue con IaC — OpenTofu + Ansible
 
 ### OpenTofu (fork OSS de Terraform)
 
@@ -463,7 +454,7 @@ ansible-playbook \
 
 ---
 
-## 6. Monitoreo y observabilidad
+## 📈 6. Monitoreo y observabilidad
 
 ### Prometheus — métricas
 
@@ -546,7 +537,7 @@ Alertas configuradas:
 
 ---
 
-## 7. Gestión de imágenes Docker
+## 💾 7. Gestión de imágenes Docker
 
 ### Build manual de una imagen
 
@@ -590,7 +581,7 @@ git push origin v1.0.0
 
 ---
 
-## 8. Backup y recuperación
+## 🔐 8. Backup y recuperación
 
 ### Backup de PostgreSQL
 
