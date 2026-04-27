@@ -1,4 +1,4 @@
-### 🚀 Guía de Inicio Rápido — NetWatch
+## 🚀 Guía de Inicio Rápido — NetWatch
 
 <p align="center">
   <img src="imagenes/Logo.png" width="300">
