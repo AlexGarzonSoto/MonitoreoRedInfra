@@ -1,6 +1,6 @@
-# Manual de Despliegue — NetWatch
+# 🚀 Manual de Despliegue — NetWatch
 
-## Tabla de contenidos
+##  📚 Tabla de contenidos
 
 1. [Requisitos de infraestructura](#1-requisitos-de-infraestructura)
 2. [Despliegue en desarrollo con Docker Compose](#2-despliegue-en-desarrollo-con-docker-compose)
@@ -15,9 +15,9 @@
 
 ---
 
-## 1. Requisitos de infraestructura
+# 🖥️ 1. Requisitos de Infraestructura
 
-### Recursos del servidor
+## ⚙️ Recursos del servidor
 
 | Modo | CPU | RAM | Disco |
 |------|-----|-----|-------|
@@ -25,13 +25,13 @@
 | Producción mínima | 4 cores | 8 GB | 100 GB SSD |
 | Producción recomendada | 8 cores | 16 GB | 500 GB SSD |
 
-### Sistema operativo recomendado
+## 🐧 Sistema Operativo recomendado
 
 - **Ubuntu 22.04 LTS** o Debian 12 (Bookworm)
 - Kernel 5.15+ para soporte completo de contenedores
 - Para captura real de tráfico: 2 interfaces de red (1 gestión + 1 captura)
 
-### Permisos de red requeridos
+## 🔐 Permisos necesarios
 
 El worker de captura necesita capacidades elevadas para acceder al nivel de paquetes:
 - `CAP_NET_ADMIN` — abrir interfaces en modo promiscuo
@@ -40,7 +40,7 @@ El worker de captura necesita capacidades elevadas para acceder al nivel de paqu
 
 Estos permisos están configurados en `docker-compose.yml` y son obligatorios incluso en modo simulación para que el contenedor arranque correctamente.
 
-### Software requerido en el servidor
+## 🧰 Software requerido
 
 ```bash
 # Instalar Docker Engine
@@ -58,16 +58,16 @@ sudo apt install openssl git -y
 
 ---
 
-## 2. Despliegue en desarrollo con Docker Compose
+## 🐳 2. Despliegue en desarrollo con Docker Compose
 
-### Paso 1 — Obtener el proyecto
+## 📥  Paso 1 — Obtener el proyecto
 
 ```bash
 git clone https://github.com/AlexGarzonSoto/MonitoreoRedInfra.git
 cd MonitoreoRedInfra
 ```
 
-### Paso 2 — Configurar variables de entorno
+## ⚙️ Paso 2 — Configurar variables de entorno
 
 ```bash
 cp .env.example .env
@@ -95,7 +95,7 @@ nano .env
 vim .env
 ```
 
-### Paso 3 — Levantar los servicios
+## ▶️ Paso 3 — Levantar los servicios
 
 ```bash
 # Primera vez: construir imágenes y arrancar
@@ -126,7 +126,7 @@ El orden de inicio es automático gracias a `depends_on` + healthchecks:
 
 > El API Gateway tarda 60-90 segundos en estar listo la primera vez porque Spring Boot debe conectar a PostgreSQL, ejecutar la validación del schema TimescaleDB y establecer los canales AMQP con RabbitMQ. Si RabbitMQ aún no está completamente listo, Spring AMQP reintenta la conexión automáticamente sin reiniciar el contenedor.
 
-### Paso 4 — Verificar la instalación
+## 🔍 Paso 4 — Verificar la instalación
 
 ```bash
 # Estado de todos los contenedores
@@ -146,6 +146,15 @@ echo "Token obtenido: ${TOKEN:0:20}..."
 xdg-open http://localhost:3000
 ```
 
+## 📊 Flujo de arranque del sistema
+
+flowchart TD
+    postgres --> api-gateway
+    rabbitmq --> api-gateway
+    api-gateway --> workers
+    workers --> frontend
+
+    
 ### Comandos de gestión diaria
 
 ```bash
