@@ -2,7 +2,7 @@
 
 Este diagrama representa la arquitectura lógica de NetWatch, basada en un enfoque de microservicios. Cada componente cumple una función específica dentro del sistema, permitiendo escalabilidad, mantenimiento independiente y mayor seguridad.
 
-## 🧠 Descripción de la arquitectura
+## Descripción de la arquitectura
 
 - **Usuario:** Interactúa con el sistema a través del navegador web.
 - **Frontend:** Interfaz gráfica que permite visualizar eventos, alertas y métricas del sistema.
@@ -13,7 +13,7 @@ Este diagrama representa la arquitectura lógica de NetWatch, basada en un enfoq
 
 Esta arquitectura permite desacoplar los servicios, mejorando la resiliencia del sistema y facilitando la integración de nuevas funcionalidades.
 
-## 📊 Diagrama
+## Diagrama
 
 ```mermaid
 flowchart LR
