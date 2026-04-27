@@ -24,5 +24,15 @@ flowchart LR
     W1 --> DB[(Base de Datos)]
     W2 --> DB
 ```
+## 🔗 Relación con el repositorio
 
+Los componentes representados en el diagrama corresponden a las siguientes rutas del proyecto:
+
+- **Frontend:** `/frontend`
+- **API Gateway:** `/api` o `/backend`
+- **Workers:** `/worker` o servicios de procesamiento
+- **Broker (RabbitMQ):** definido en `docker-compose.yml`
+- **Base de datos:** configurada en `docker-compose.yml`
+
+La comunicación entre servicios se realiza mediante colas de mensajes (RabbitMQ) y llamadas HTTP internas.
 
