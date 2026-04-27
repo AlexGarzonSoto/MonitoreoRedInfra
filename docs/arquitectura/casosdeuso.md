@@ -21,3 +21,12 @@ flowchart LR
     Usuario -->|Consulta| Dashboard
     Usuario -->|Visualiza| Eventos
 ```
+## 🔗 Relación con la aplicación
+
+Las funcionalidades descritas en este diagrama se reflejan en la interfaz del usuario:
+
+- Dashboard → visualización principal
+- Eventos → listado de tráfico analizado
+- Alertas → notificaciones de amenazas
+
+El rol de administrador tiene acceso a configuraciones adicionales dentro del sistema.
