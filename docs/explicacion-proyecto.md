@@ -1,5 +1,9 @@
 # NetWatch — Explicación Completa del Proyecto
 
+<p align="center">
+  <img src="imagenes/Logo.png" width="300">
+</p>
+
 > Documento de estudio para entender y explicar cada parte del sistema.
 > Cubre: arquitectura, código, base de datos, infraestructura y pipeline DevSecOps.
 
