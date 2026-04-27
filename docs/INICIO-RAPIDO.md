@@ -1,4 +1,4 @@
-# Guía de inicio rápido — NetWatch
+### 🚀 Guía de Inicio Rápido — NetWatch
 
 <p align="center">
   <img src="imagenes/Logo.png" width="300">
@@ -17,7 +17,7 @@ NetWatch es una aplicación que **monitorea tu red en tiempo real** y te avisa c
 ---
 ## PASOS ##
 
-### 1. Docker
+## 📦 Paso 1 — Instalar Docker
 
 Docker es el programa que ejecuta NetWatch. Sin él no funciona nada.
 
@@ -38,7 +38,7 @@ Deberías ver algo como: `Docker version 26.x.x`. Si lo ves, Docker está listo.
 
 ---
 
-### 2. La terminal correcta según tu sistema
+## ▶️ 2. La terminal correcta según tu sistema
 
 Los comandos de esta guía usan `make`, que **no funciona en el CMD ni en PowerShell de Windows**. Usa la terminal correcta:
 
@@ -56,7 +56,7 @@ Los comandos de esta guía usan `make`, que **no funciona en el CMD ni en PowerS
 
 ---
 
-## Paso 1 — Descargar NetWatch
+## ▶️ Paso 1 — Descargar NetWatch
 
 Abre tu terminal (Git Bash en Windows, Terminal en Mac/Linux) y copia estas dos líneas, **una por una**, presionando Enter después de cada una:
 
@@ -71,7 +71,7 @@ Cuando termines, habrás descargado el proyecto en una carpeta llamada `Monitore
 
 ---
 
-## Paso 2 — Configurar (solo la primera vez)
+## ▶️ Paso 2 — Configurar (solo la primera vez)
 
 Dentro de la carpeta del proyecto, ejecuta:
 
@@ -96,7 +96,7 @@ Este comando hace dos cosas automáticamente:
 
 ---
 
-## Paso 3 — Arrancar NetWatch
+## ▶️ Paso 3 — Arrancar NetWatch
 
 ```bash
 make iniciar
@@ -117,7 +117,7 @@ Verás muchas líneas de texto pasando — eso es normal. Cuando termine verás:
 
 ---
 
-## Paso 4 — Abrir el panel de control
+## ▶️ Paso 4 — Abrir el panel de control
 
 Abre tu navegador (Chrome, Firefox, Edge) y ve a:
 
@@ -136,7 +136,7 @@ Verás la pantalla de inicio de sesión de NetWatch.
 
 ---
 
-## Lo que verás al entrar
+## ▶️ Lo que verás al entrar
 
 Una vez dentro del panel verás:
 
@@ -149,7 +149,7 @@ Los datos empiezan a aparecer en los primeros minutos porque NetWatch genera tr�
 
 ---
 
-## Comandos del día a día
+## ▶️ Comandos del día a día
 
 Una vez que tienes NetWatch instalado, estos son los únicos comandos que necesitas (ejecutados desde la carpeta `MonitoreoRedInfra` en tu terminal):
 
@@ -163,9 +163,9 @@ Una vez que tienes NetWatch instalado, estos son los únicos comandos que necesi
 
 ---
 
-## Solución de problemas frecuentes
+## ▶️ Solución de problemas frecuentes
 
-### "El comando make no se reconoce"
+### ▶️ "El comando make no se reconoce"
 
 Estás usando CMD o PowerShell de Windows. Cierra esa ventana y abre **Git Bash** en su lugar (busca "Git Bash" en el menú inicio).
 
