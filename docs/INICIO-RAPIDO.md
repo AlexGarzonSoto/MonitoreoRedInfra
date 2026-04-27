@@ -8,21 +8,25 @@
 
 **Tiempo estimado:** 15-20 minutos (la mayor parte es espera mientras descarga)
 
+## 🧠 ¿Qué es NetWatch?
+
+NetWatch es una aplicación que monitorea tu red en tiempo real y te avisa cuando detecta actividad sospechosa, como intentos de fuerza bruta, escaneo de puertos o comportamientos anómalos.  
+Toda la información se visualiza en un panel web accesible desde el navegador.
+
 ---
-
-# ¿Qué es NetWatch?
-
-NetWatch es una aplicación que **monitorea tu red en tiempo real** y te avisa cuando detecta actividad sospechosa, como alguien intentando adivinar contraseñas, escanear tus puertos o realizar un ataque. Todo se visualiza en un panel web desde tu navegador.
 
 ## 📐 ¿Cómo funciona NetWatch?
 
+El sistema está basado en una arquitectura de microservicios donde cada componente cumple una función específica dentro del flujo de monitoreo.
+
 ```mermaid
 flowchart LR
-    Usuario --> Frontend
-    Frontend --> API
-    API --> Worker
-    Worker --> DB
----
+    U[Usuario] --> F[Frontend]
+    F --> A[API Gateway]
+    A --> W[Worker]
+    W --> D[(Base de Datos)]
+
+
 
 
 # PASOS ##
