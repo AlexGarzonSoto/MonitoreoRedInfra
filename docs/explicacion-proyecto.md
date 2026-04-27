@@ -35,10 +35,7 @@
 
 ## 1. ¿Qué es NetWatch?
 
-NetWatch es un **sistema de monitoreo y detección de amenazas en red** construido como
-pipeline DevSecOps completo. El objetivo académico es demostrar que se puede integrar
-seguridad en **cada fase del ciclo de vida del software**: desde el código hasta la
-operación en producción.
+NetWatch es una plataforma de monitoreo de red orientada a la detección temprana de amenazas, diseñada bajo un enfoque DevSecOps. Su propósito principal es demostrar cómo la seguridad puede integrarse de forma continua en todas las etapas del ciclo de vida del software, desde el desarrollo hasta la operación en producción. A nivel funcional, el sistema permite analizar tráfico de red en tiempo real, identificar comportamientos sospechosos y generar alertas automáticas que facilitan la respuesta ante incidentes de seguridad.
 
 ### En términos simples
 
