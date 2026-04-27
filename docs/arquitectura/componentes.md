@@ -1,6 +1,3 @@
-
-
-```md
 # 📐 Diagrama de Componentes (Microservicios)
 
 Este diagrama muestra la arquitectura general del sistema NetWatch basada en microservicios.
