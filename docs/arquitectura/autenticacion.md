@@ -27,3 +27,12 @@ sequenceDiagram
     A-->>F: JWT Token
     F-->>U: Acceso concedido
 ```
+## 🔗 Relación con el código
+
+El flujo de autenticación está implementado en:
+
+- Rutas de autenticación en el backend (`/auth` o `/login`)
+- Generación de tokens JWT en el API Gateway
+- Validación de usuarios en la base de datos
+
+El token JWT se utiliza en cada solicitud protegida para verificar la identidad del usuario.
