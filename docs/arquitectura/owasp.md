@@ -24,3 +24,18 @@ flowchart LR
     Scan --> Test[DAST - OWASP ZAP]
     Test --> Deploy
 ```
+## 🔗 Relación con el pipeline CI/CD
+
+El flujo descrito se implementa en los workflows ubicados en:
+
+- `.github/workflows/`
+
+Herramientas utilizadas en el proyecto:
+
+- **SAST:** Semgrep / Bandit
+- **Detección de secretos:** Gitleaks
+- **Escaneo de dependencias:** Trivy
+- **Escaneo de imágenes Docker:** Trivy
+- **DAST:** OWASP ZAP (carpeta `.zap/`)
+
+El pipeline automatiza la detección de vulnerabilidades en cada cambio de código, evitando que errores de seguridad lleguen a producción.
