@@ -7,7 +7,7 @@
 SHELL := /bin/bash
 
 .DEFAULT_GOAL := ayuda
-.PHONY: ayuda configurar iniciar detener estado logs reiniciar limpiar abrir verificar
+.PHONY: ayuda configurar iniciar construir detener estado logs reiniciar limpiar abrir verificar
 
 # Colores para mensajes en pantalla
 VERDE  := \033[0;32m
@@ -22,7 +22,8 @@ ayuda:
 	@echo "$(NEGRITA)NetWatch — Comandos disponibles$(RESET)"
 	@echo "────────────────────────────────────────────────"
 	@echo "  $(VERDE)make configurar$(RESET)   Primera vez: crea el archivo de configuración"
-	@echo "  $(VERDE)make iniciar$(RESET)      Arranca NetWatch (puede tardar 2-3 minutos)"
+	@echo "  $(VERDE)make iniciar$(RESET)      Arranca NetWatch usando imágenes de Docker Hub"
+	@echo "  $(VERDE)make construir$(RESET)    Compila desde código fuente (para desarrollo)"
 	@echo "  $(VERDE)make detener$(RESET)      Para NetWatch (los datos se conservan)"
 	@echo "  $(VERDE)make estado$(RESET)       Muestra si todos los servicios funcionan"
 	@echo "  $(VERDE)make logs$(RESET)         Muestra los mensajes internos en tiempo real"
@@ -68,13 +69,27 @@ configurar:
 	@echo "    $(NEGRITA)make iniciar$(RESET)"
 	@echo ""
 
+# ── Construir desde código fuente (modo desarrollo) ───────────────────────────
+construir: verificar
+	@echo ""
+	@echo "$(NEGRITA)Compilando e iniciando NetWatch desde código fuente...$(RESET)"
+	@echo "  (Requiere Java 21 y Node.js — puede tardar 5-10 minutos)"
+	@echo ""
+	docker compose up -d --build
+	@echo ""
+	@echo "$(VERDE)$(NEGRITA)✓ NetWatch construido y arrancado.$(RESET)"
+	@echo ""
+	@echo "  Espera 2 minutos y luego accede a:"
+	@echo "    $(NEGRITA)Dashboard:  http://localhost:3000$(RESET)"
+	@echo ""
+
 # ── Iniciar ───────────────────────────────────────────────────────────────────
 iniciar: verificar
 	@echo ""
 	@echo "$(NEGRITA)Iniciando NetWatch...$(RESET)"
-	@echo "  (La primera vez tarda entre 3 y 5 minutos porque descarga las imágenes)"
+	@echo "  (La primera vez tarda 2-3 minutos descargando imágenes de Docker Hub)"
 	@echo ""
-	docker compose up -d --build
+	docker compose up -d
 	@echo ""
 	@echo "$(VERDE)$(NEGRITA)✓ NetWatch arrancado.$(RESET)"
 	@echo ""
