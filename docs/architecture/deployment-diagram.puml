@@ -1,0 +1,105 @@
+@startuml NetWatch — Diagrama de Despliegue
+!theme plain
+skinparam linetype ortho
+title NetWatch — Despliegue Docker Compose
+
+node "Host Linux (MX Linux / Ubuntu)" as HOST {
+
+  package "Red Docker: netwatch-net (bridge)" as NET {
+
+    node "netwatch-postgres" <<container>> {
+      component "TimescaleDB 15\namazoncorretto:21" as PG
+    }
+
+    node "netwatch-rabbitmq" <<container>> {
+      component "RabbitMQ 3.12-management\nvhost: netwatch" as RMQ
+    }
+
+    node "netwatch-valkey" <<container>> {
+      component "Valkey 7.2-alpine\n--requirepass" as VK
+    }
+
+    node "netwatch-api-gateway" <<container>> {
+      component "Spring Boot :8080\nJWT + RBAC\namazoncorretto:21" as GW
+    }
+
+    node "netwatch-worker-capture" <<container>> {
+      component "Spring Boot :8082\nPcap4J\nNET_ADMIN + NET_RAW" as WC
+    }
+
+    node "netwatch-worker-analysis" <<container>> {
+      component "Spring Boot :8081\nThreatDetectionEngine" as WA
+    }
+
+    node "netwatch-worker-alerts" <<container>> {
+      component "Spring Boot :8083\nSMTP + Webhook" as WAL
+    }
+
+    node "netwatch-worker-osint" <<container>> {
+      component "Spring Boot :8084\nip-api.com + Valkey" as WO
+    }
+
+    node "netwatch-worker-scanner" <<container>> {
+      component "Spring Boot :8085\nNmap + NVD API" as WS
+    }
+
+    node "netwatch-frontend" <<container>> {
+      component "Vue.js 3 + Nginx 1.25\npuerto host: 3000" as FE
+    }
+
+    node "netwatch-prometheus" <<container>> {
+      component "Prometheus latest\n:9090 (interno)" as PROM
+    }
+
+    node "netwatch-grafana" <<container>> {
+      component "Grafana OSS latest\npuerto host: 3001" as GRAF
+    }
+
+    node "netwatch-loki" <<container>> {
+      component "Grafana Loki latest\n:3100 (interno)" as LOKI
+    }
+
+    node "netwatch-promtail" <<container>> {
+      component "Promtail latest\nmonta /var/log" as PT
+    }
+  }
+
+  storage "Volúmenes Docker" as VOLS {
+    [postgres_data]
+    [rabbitmq_data]
+    [valkey_data]
+    [grafana_data]
+    [loki_data]
+  }
+}
+
+actor "Usuario" as U
+actor "Operador" as OPS
+
+U --> FE       : http://localhost:3000
+OPS --> GRAF   : http://localhost:3001
+FE --> GW      : proxy /api/*
+GW --> PG      : JDBC
+GW --> RMQ     : AMQP
+WC --> RMQ
+WA --> RMQ
+WAL --> RMQ
+WO --> RMQ
+WS --> RMQ
+PROM --> GW
+PROM --> WA
+PROM --> WC
+PROM --> WAL
+PROM --> WO
+PROM --> WS
+GRAF --> PROM
+GRAF --> LOKI
+PT --> LOKI
+
+PG ..> [postgres_data]   : persiste
+RMQ ..> [rabbitmq_data]  : persiste
+VK ..> [valkey_data]     : persiste
+GRAF ..> [grafana_data]  : persiste
+LOKI ..> [loki_data]     : persiste
+
+@enduml

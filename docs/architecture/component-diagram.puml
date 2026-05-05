@@ -1,0 +1,83 @@
+@startuml NetWatch — Diagrama de Componentes
+!theme plain
+skinparam linetype ortho
+skinparam componentStyle rectangle
+title NetWatch — Arquitectura de Microservicios
+
+actor "Usuario" as U
+
+package "Frontend" #LightBlue {
+  [Vue.js 3 + Vite\nNginx :80\n<<SPA>>] as FE
+}
+
+package "API Layer" #LightGreen {
+  [API Gateway\nSpring Boot :8080\n<<REST + JWT>>] as GW
+}
+
+package "Message Broker" #LightYellow {
+  [RabbitMQ 3.12\nExchange: netwatch.direct\n<<AMQP>>] as MQ
+}
+
+package "Workers" #LightSalmon {
+  [Worker Captura\n:8082\n<<Pcap4J>>] as WC
+  [Worker Análisis\n:8081\n<<ThreatEngine>>] as WA
+  [Worker Alertas\n:8083\n<<SMTP/Webhook>>] as WAL
+  [Worker OSINT\n:8084\n<<GeoIP>>] as WO
+  [Worker Scanner\n:8085\n<<Nmap + NVD>>] as WS
+}
+
+package "Persistencia" #Lavender {
+  database "PostgreSQL 15\nTimescaleDB\n:5432" as DB
+  database "Valkey 7.2\n:6379\n<<caché GeoIP>>" as VK
+}
+
+package "Observabilidad" #Honeydew {
+  [Prometheus :9090] as PROM
+  [Grafana :3001] as GRAF
+  [Loki :3100] as LOKI
+  [Promtail] as PT
+  [Falco\n<<runtime security>>] as FALCO
+}
+
+cloud "Externo" {
+  [ip-api.com\n<<GeoIP REST>>] as GEO
+  [SMTP / Webhook] as SMTP
+}
+
+U --> FE : HTTPS :3000
+FE --> GW : /api/** (proxy Nginx)
+
+GW --> DB : JPA/Hibernate
+GW --> MQ : threats.detected (consume)
+GW --> MQ : publish (eventos resueltos)
+
+WC --> MQ : packets.raw
+MQ --> WA : packets.raw
+WA --> MQ : threats.detected
+WA --> MQ : alerts.notify
+WA --> MQ : osint.enrich
+WA --> MQ : scan.requests
+
+MQ --> WAL : alerts.notify
+WAL --> SMTP : notificaciones
+
+MQ --> WO : osint.enrich
+WO --> VK : caché GeoIP (TTL 1h)
+WO --> GEO : HTTP lookup
+WO --> MQ : threats.detected (enriched)
+
+MQ --> WS : scan.requests
+
+PROM --> GW  : scrape /actuator/prometheus
+PROM --> WA  : scrape :8081
+PROM --> WC  : scrape :8082
+PROM --> WAL : scrape :8083
+PROM --> WO  : scrape :8084
+PROM --> WS  : scrape :8085
+
+GRAF --> PROM : PromQL
+GRAF --> LOKI : LogQL
+PT --> LOKI   : push logs
+FALCO .> GW  : runtime alerts
+
+@enduml

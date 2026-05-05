@@ -1,0 +1,39 @@
+---
+- name: Despliegue de NetWatch
+  hosts: netwatch_servers
+  become: true
+  vars_files:
+    - vars/secrets.yml
+
+  pre_tasks:
+    - name: Actualizar caché de paquetes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - role: netwatch
+
+  post_tasks:
+    - name: Verificar que el frontend responde
+      ansible.builtin.uri:
+        url: "http://localhost:3000"
+        status_code: 200
+      retries: 10
+      delay: 15
+
+    - name: Verificar que el API Gateway responde
+      ansible.builtin.uri:
+        url: "http://localhost:8080/actuator/health"
+        status_code: 200
+      retries: 10
+      delay: 15
+
+    - name: Mostrar estado final
+      ansible.builtin.debug:
+        msg:
+          - "✓ NetWatch desplegado correctamente"
+          - "  Dashboard:  http://{{ ansible_host }}:3000"
+          - "  Métricas:   http://{{ ansible_host }}:3001"
+          - "  API:        http://{{ ansible_host }}:8080"

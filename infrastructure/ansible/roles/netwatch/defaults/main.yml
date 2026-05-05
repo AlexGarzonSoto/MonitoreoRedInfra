@@ -1,0 +1,10 @@
+---
+netwatch_version: "latest"
+netwatch_deploy_dir: /opt/netwatch
+netwatch_dockerhub_user: alexgarzonsoto
+
+netwatch_postgres_db: netwatch
+netwatch_postgres_user: netwatch
+netwatch_rabbitmq_user: netwatch
+netwatch_capture_interface: eth0
+netwatch_alert_email_enabled: false

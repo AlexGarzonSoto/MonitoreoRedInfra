@@ -1,0 +1,333 @@
+{
+  "summary": {
+    "title": "NetWatch — Modelo de Amenazas STRIDE",
+    "owner": "AlexGarzonSoto",
+    "description": "Modelo de amenazas DFD nivel 0 y nivel 1 para el sistema NetWatch de monitoreo de amenazas en infraestructura de red. Cubre los flujos principales: autenticación JWT, captura de paquetes, análisis de amenazas y enriquecimiento OSINT.",
+    "id": 0
+  },
+  "detail": {
+    "contributors": [
+      { "name": "AlexGarzonSoto" }
+    ],
+    "diagrams": [
+      {
+        "id": 0,
+        "title": "DFD Nivel 0 — Vista General",
+        "diagramType": "STRIDE",
+        "placeholder": "Diagrama de flujo de datos nivel 0",
+        "version": "2.0",
+        "cells": [
+          {
+            "id": "actor-usuario",
+            "label": "Usuario\n(Admin/Analyst/Viewer)",
+            "data": { "type": "tm.Actor", "name": "Usuario", "outOfScope": false, "reasonOutOfScope": "", "hasOpenThreats": false, "threats": [] },
+            "position": { "x": 50, "y": 200 },
+            "size": { "width": 120, "height": 60 }
+          },
+          {
+            "id": "proc-netwatch",
+            "label": "Sistema NetWatch\n(6 microservicios)",
+            "data": {
+              "type": "tm.Process",
+              "name": "NetWatch",
+              "outOfScope": false,
+              "reasonOutOfScope": "",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-01",
+                  "title": "Suplantación de identidad",
+                  "type": "Spoofing",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "description": "Un atacante podría intentar suplantar a un usuario legítimo mediante credenciales robadas o ataques de fuerza bruta sobre el endpoint /api/v1/auth/login.",
+                  "mitigation": "Rate limiting con Bucket4j (5 req/min/IP), contraseñas hasheadas con BCrypt strength 12, JWT de corta duración (30 min), refresh tokens con rotación."
+                },
+                {
+                  "id": "T-02",
+                  "title": "Elevación de privilegios",
+                  "type": "ElevationOfPrivilege",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "description": "Un usuario VIEWER o ANALYST podría intentar acceder a endpoints restringidos a ADMIN como /api/v1/users o controlar la captura de red.",
+                  "mitigation": "RBAC implementado con Spring Security @PreAuthorize y hasRole(). Roles: ADMIN > ANALYST > VIEWER. Validado en cada endpoint."
+                },
+                {
+                  "id": "T-03",
+                  "title": "Repudio de acciones",
+                  "type": "Repudiation",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "Un usuario podría negar haber realizado acciones sobre eventos o alertas (resolución, reconocimiento).",
+                  "mitigation": "Pendiente: implementar audit log inmutable con userId, timestamp y acción en tabla separada de PostgreSQL."
+                }
+              ]
+            },
+            "position": { "x": 350, "y": 150 },
+            "size": { "width": 160, "height": 80 }
+          },
+          {
+            "id": "store-postgres",
+            "label": "PostgreSQL\nTimescaleDB",
+            "data": {
+              "type": "tm.Store",
+              "name": "PostgreSQL",
+              "outOfScope": false,
+              "isALog": false,
+              "storesCredentials": true,
+              "isEncrypted": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-04",
+                  "title": "Exposición de datos sensibles",
+                  "type": "InformationDisclosure",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "description": "La base de datos contiene hashes de contraseñas y datos de red capturados. Una inyección SQL podría exponer estos datos.",
+                  "mitigation": "JPA/Hibernate con queries parametrizadas (sin SQL crudo). Puerto 5432 no expuesto al host (solo red interna Docker). Contraseña en .env no versionado."
+                },
+                {
+                  "id": "T-05",
+                  "title": "Modificación de eventos de red",
+                  "type": "Tampering",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "description": "Un atacante con acceso a la red Docker podría modificar registros de eventos almacenados.",
+                  "mitigation": "Red Docker bridge aislada. TimescaleDB hypertables con índices en timestamp. Acceso controlado por roles de aplicación."
+                }
+              ]
+            },
+            "position": { "x": 600, "y": 100 },
+            "size": { "width": 140, "height": 60 }
+          },
+          {
+            "id": "store-rabbitmq",
+            "label": "RabbitMQ\nMessage Broker",
+            "data": {
+              "type": "tm.Store",
+              "name": "RabbitMQ",
+              "outOfScope": false,
+              "isALog": false,
+              "storesCredentials": false,
+              "isEncrypted": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-06",
+                  "title": "Manipulación de mensajes en broker",
+                  "type": "Tampering",
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "Un atacante con acceso a la red interna podría inyectar mensajes maliciosos en las colas de RabbitMQ, creando falsos positivos o negativos en la detección de amenazas.",
+                  "mitigation": "Pendiente: habilitar TLS en AMQP. Actualmente: vhost dedicado 'netwatch', usuario con permisos mínimos, red Docker aislada."
+                }
+              ]
+            },
+            "position": { "x": 600, "y": 250 },
+            "size": { "width": 140, "height": 60 }
+          },
+          {
+            "id": "actor-red",
+            "label": "Red de\nInfraestructura",
+            "data": { "type": "tm.Actor", "name": "Red de Infraestructura", "outOfScope": true, "reasonOutOfScope": "Tráfico de red externo capturado pasivamente", "hasOpenThreats": false, "threats": [] },
+            "position": { "x": 50, "y": 350 },
+            "size": { "width": 130, "height": 60 }
+          },
+          {
+            "id": "flow-login",
+            "source": "actor-usuario",
+            "target": "proc-netwatch",
+            "label": "POST /api/v1/auth/login\n{email, password}",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Login",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "HTTPS",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "id": "flow-api",
+            "source": "actor-usuario",
+            "target": "proc-netwatch",
+            "label": "API REST + JWT\n/api/v1/**",
+            "data": {
+              "type": "tm.Flow",
+              "name": "API autenticada",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "HTTP",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "id": "flow-capture",
+            "source": "actor-red",
+            "target": "proc-netwatch",
+            "label": "Tráfico de red\n(captura pasiva Pcap4J)",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Captura de red",
+              "isEncrypted": false,
+              "isPublicNetwork": true,
+              "protocol": "TCP/UDP/ICMP",
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-07",
+                  "title": "Denegación de servicio por flood de paquetes",
+                  "type": "DenialOfService",
+                  "status": "Mitigated",
+                  "severity": "High",
+                  "description": "Un atacante podría saturar la interfaz de red con paquetes para desbordar el worker de captura y el broker de mensajes.",
+                  "mitigation": "Prefetch count limitado a 20 mensajes/hilo, máximo 10 hilos concurrentes en RabbitMQ. Worker con rate limiting interno."
+                }
+              ]
+            }
+          },
+          {
+            "id": "flow-persist",
+            "source": "proc-netwatch",
+            "target": "store-postgres",
+            "label": "JPA/Hibernate\nCRUD eventos y alertas",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Persistencia",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "JDBC",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          },
+          {
+            "id": "flow-mq",
+            "source": "proc-netwatch",
+            "target": "store-rabbitmq",
+            "label": "AMQP publish/consume\nnetwatch.direct",
+            "data": {
+              "type": "tm.Flow",
+              "name": "Mensajería",
+              "isEncrypted": false,
+              "isPublicNetwork": false,
+              "protocol": "AMQP",
+              "hasOpenThreats": false,
+              "threats": []
+            }
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "title": "DFD Nivel 1 — Flujo de Detección de Amenazas",
+        "diagramType": "STRIDE",
+        "placeholder": "Flujo interno de detección y enriquecimiento",
+        "version": "2.0",
+        "cells": [
+          {
+            "id": "proc-capture",
+            "label": "Worker Captura\n(Pcap4J / simulador)",
+            "data": {
+              "type": "tm.Process",
+              "name": "Worker Captura",
+              "outOfScope": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-08",
+                  "title": "Captura no autorizada",
+                  "type": "ElevationOfPrivilege",
+                  "status": "Mitigated",
+                  "severity": "Critical",
+                  "description": "El worker de captura requiere NET_ADMIN y NET_RAW para Pcap4J. Si un proceso malicioso accede al contenedor, puede capturar todo el tráfico de red.",
+                  "mitigation": "Regla Falco: alerta si proceso distinto a worker-capture abre socket RAW. Contenedor con usuario no-root. NET_ADMIN/RAW solo en este contenedor."
+                }
+              ]
+            },
+            "position": { "x": 100, "y": 150 },
+            "size": { "width": 140, "height": 70 }
+          },
+          {
+            "id": "proc-analysis",
+            "label": "Worker Análisis\n(ThreatDetectionEngine)",
+            "data": {
+              "type": "tm.Process",
+              "name": "Worker Análisis",
+              "outOfScope": false,
+              "hasOpenThreats": false,
+              "threats": []
+            },
+            "position": { "x": 320, "y": 150 },
+            "size": { "width": 150, "height": 70 }
+          },
+          {
+            "id": "proc-osint",
+            "label": "Worker OSINT\n(ip-api.com + Valkey)",
+            "data": {
+              "type": "tm.Process",
+              "name": "Worker OSINT",
+              "outOfScope": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-09",
+                  "title": "Divulgación de IPs internas a servicio externo",
+                  "type": "InformationDisclosure",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "description": "Las IPs capturadas se envían a ip-api.com para geolocalización. IPs de redes privadas (RFC1918) no deberían enviarse a servicios externos.",
+                  "mitigation": "GeoIpService omite consulta para rangos privados (10.x, 192.168.x, 172.16-31.x). Caché en Valkey con TTL 1h reduce exposición."
+                }
+              ]
+            },
+            "position": { "x": 540, "y": 250 },
+            "size": { "width": 150, "height": 70 }
+          },
+          {
+            "id": "proc-alerts",
+            "label": "Worker Alertas\n(SMTP + Webhook)",
+            "data": {
+              "type": "tm.Process",
+              "name": "Worker Alertas",
+              "outOfScope": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "id": "T-10",
+                  "title": "Credenciales SMTP en texto plano",
+                  "type": "InformationDisclosure",
+                  "status": "Mitigated",
+                  "severity": "Medium",
+                  "description": "Las credenciales de SMTP se configuran como variables de entorno. Si el contenedor se compromete, estas podrían extraerse.",
+                  "mitigation": "Variables en archivo .env no versionado (.gitignore). Gitleaks en pre-commit y CI evita commits accidentales. SMTP deshabilitado por defecto (ALERT_EMAIL_ENABLED=false)."
+                }
+              ]
+            },
+            "position": { "x": 540, "y": 80 },
+            "size": { "width": 150, "height": 70 }
+          },
+          {
+            "id": "proc-gateway",
+            "label": "API Gateway\n(JWT + RBAC)",
+            "data": {
+              "type": "tm.Process",
+              "name": "API Gateway",
+              "outOfScope": false,
+              "hasOpenThreats": false,
+              "threats": []
+            },
+            "position": { "x": 320, "y": 350 },
+            "size": { "width": 150, "height": 70 }
+          }
+        ]
+      }
+    ],
+    "diagramTop": 1,
+    "reviewer": "",
+    "threatTop": 10
+  }
+}

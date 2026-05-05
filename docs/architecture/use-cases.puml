@@ -1,0 +1,91 @@
+@startuml NetWatch — Casos de Uso
+!theme plain
+left to right direction
+skinparam actorStyle awesome
+title NetWatch — Casos de Uso por Actor (RBAC)
+
+actor "Administrador\n(ADMIN)" as ADMIN #LightCoral
+actor "Analista\n(ANALYST)" as ANALYST #LightBlue
+actor "Visualizador\n(VIEWER)" as VIEWER #LightGreen
+
+ANALYST -|> VIEWER  : hereda
+ADMIN   -|> ANALYST : hereda
+
+rectangle "Sistema NetWatch" {
+
+  package "Autenticación" {
+    usecase "UC-01\nIniciar sesión" as UC01
+    usecase "UC-02\nCerrar sesión" as UC02
+    usecase "UC-03\nRenovar token JWT" as UC03
+  }
+
+  package "Dashboard" {
+    usecase "UC-04\nVer resumen de amenazas\n(total, críticas, sin resolver)" as UC04
+    usecase "UC-05\nVer gráficas de\ntendencia por tipo" as UC05
+  }
+
+  package "Gestión de Eventos" {
+    usecase "UC-06\nListar eventos de red\n(paginado + filtros)" as UC06
+    usecase "UC-07\nBuscar eventos por IP,\ntipo, severidad, fecha" as UC07
+    usecase "UC-08\nVer detalle de evento\n(GeoIP, ASN, abuso%)" as UC08
+    usecase "UC-09\nMarcar evento como\nresuelto" as UC09
+  }
+
+  package "Gestión de Alertas" {
+    usecase "UC-10\nVer alertas activas" as UC10
+    usecase "UC-11\nReconocer alerta\n(OPEN → ACKNOWLEDGED)" as UC11
+    usecase "UC-12\nResolver alerta\n(→ RESOLVED)" as UC12
+    usecase "UC-13\nMarcar falso positivo\n(→ FALSE_POSITIVE)" as UC13
+  }
+
+  package "Captura de Red" {
+    usecase "UC-14\nVer estado de captura\ny interfaces disponibles" as UC14
+    usecase "UC-15\nCambiar interfaz\nde captura" as UC15
+    usecase "UC-16\nIniciar / Detener\ncaptura de paquetes" as UC16
+  }
+
+  package "Escaneo de Vulnerabilidades" {
+    usecase "UC-17\nSolicitar escaneo\nde IP objetivo" as UC17
+    usecase "UC-18\nVer resultados\nde escaneos" as UC18
+  }
+
+  package "Reportes" {
+    usecase "UC-19\nExportar eventos\n(JSON / CSV)" as UC19
+    usecase "UC-20\nExportar alertas\n(JSON / CSV)" as UC20
+  }
+
+  package "Administración" {
+    usecase "UC-21\nGestionar usuarios\n(crear, activar, desactivar)" as UC21
+    usecase "UC-22\nAsignar roles\n(ADMIN / ANALYST / VIEWER)" as UC22
+  }
+}
+
+' VIEWER puede:
+VIEWER --> UC01
+VIEWER --> UC02
+VIEWER --> UC03
+VIEWER --> UC04
+VIEWER --> UC05
+VIEWER --> UC06
+VIEWER --> UC07
+VIEWER --> UC08
+VIEWER --> UC10
+VIEWER --> UC14
+VIEWER --> UC18
+VIEWER --> UC19
+VIEWER --> UC20
+
+' ANALYST además puede:
+ANALYST --> UC09
+ANALYST --> UC11
+ANALYST --> UC12
+ANALYST --> UC13
+
+' ADMIN además puede:
+ADMIN --> UC15
+ADMIN --> UC16
+ADMIN --> UC17
+ADMIN --> UC21
+ADMIN --> UC22
+
+@enduml

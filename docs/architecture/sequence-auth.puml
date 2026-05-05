@@ -1,0 +1,108 @@
+@startuml NetWatch — Secuencia de Autenticación JWT
+!theme plain
+title NetWatch — Flujo Completo de Autenticación JWT
+
+actor "Usuario" as U
+participant "Frontend\nVue.js" as FE
+participant "Nginx\n:3000" as NX
+participant "RateLimitFilter\nBucket4j" as RL
+participant "JwtAuthFilter" as JF
+participant "AuthController" as AC
+participant "AuthService\nBCrypt" as AS
+participant "JwtTokenProvider\nHMAC-SHA512" as JWT
+database "PostgreSQL\nusers" as DB
+
+== Inicio de Sesión ==
+
+U -> FE       : Introduce email + contraseña\ny presiona "Entrar"
+FE -> NX      : POST /api/v1/auth/login\nContent-Type: application/json\n{email, password}
+NX -> RL      : Forwarda petición
+RL -> RL      : Verifica bucket por IP\n[5 req/min máximo]
+
+alt Rate limit superado
+  RL --> FE   : 429 Too Many Requests\nRetry-After: 60
+  FE --> U    : "Demasiados intentos.\nIntente en 60 segundos."
+else Dentro del límite
+  RL -> JF    : Forwarda
+  JF -> JF    : Sin header Authorization\n→ ruta pública, continúa
+  JF -> AC    : LoginRequest {email, password}
+  AC -> AS    : login(email, password)
+  AS -> DB    : findByEmailAndActiveTrue(email)
+  DB --> AS   : Optional<User>
+
+  alt Usuario no encontrado o inactivo
+    AS --> AC : throw AuthException
+    AC --> FE : 401 Unauthorized
+    FE --> U  : "Credenciales incorrectas"
+  else Usuario encontrado
+    AS -> AS  : BCrypt.matches(rawPassword, hash)
+
+    alt Contraseña incorrecta
+      AS --> FE : 401 Unauthorized
+      FE --> U  : "Credenciales incorrectas"
+    else Credenciales válidas
+      AS -> JWT : generateAccessToken(userId, role)
+      JWT --> AS : accessToken\n[HMAC-SHA512, TTL 30 min\nclaim: sub=userId, role, type=access]
+      AS -> JWT  : generateRefreshToken(userId)
+      JWT --> AS : refreshToken\n[HMAC-SHA512, TTL 7 días\nclaim: sub=userId, type=refresh]
+      AS --> AC  : LoginResponse
+      AC --> FE  : 200 OK\n{accessToken, refreshToken, tokenType, role}
+      FE -> FE   : localStorage.setItem("accessToken")\nlocalStorage.setItem("refreshToken")\nlocalStorage.setItem("role")
+      FE --> U   : redirect → /dashboard
+    end
+  end
+end
+
+== Petición Autenticada ==
+
+U -> FE       : Navega a /eventos
+FE -> NX      : GET /api/v1/events\nAuthorization: Bearer <accessToken>
+NX -> JF      : Forwarda
+JF -> JWT     : validateAccessToken(token)
+JWT --> JF    : Claims {userId, role, type=access}
+JF -> JF      : SecurityContext.setAuthentication\n(userId, ROLE_ADMIN)
+JF -> AC      : Petición con contexto de seguridad
+AC --> FE     : 200 Page<EventDTO>
+FE --> U      : Muestra tabla de eventos
+
+== Renovación Automática de Token (Interceptor Axios) ==
+
+FE -> NX      : GET /api/v1/events\nAuthorization: Bearer <tokenExpirado>
+NX -> JF      : Forwarda
+JF -> JWT     : validateAccessToken(tokenExpirado)
+JWT --> JF    : JwtExpiredException
+JF -> JF      : Sin autenticación en contexto
+AC --> FE     : 401 Unauthorized
+
+note over FE   : Interceptor axios detecta 401\ny ejecuta flujo de refresh
+
+FE -> NX      : POST /api/v1/auth/refresh\nX-Refresh-Token: <refreshToken>
+NX -> AC      : Forwarda
+AC -> AS      : refresh(refreshToken)
+AS -> JWT     : validateRefreshToken(refreshToken)
+JWT --> AS    : userId
+AS -> DB      : findById(userId)
+DB --> AS     : User activo
+AS -> JWT     : generateAccessToken(userId, role)
+JWT --> AS    : nuevo accessToken
+AS -> JWT     : generateRefreshToken(userId)
+JWT --> AS    : nuevo refreshToken (rotación)
+AS --> AC     : LoginResponse
+AC --> FE     : 200 {newAccessToken, newRefreshToken}
+FE -> FE      : localStorage actualiza tokens
+FE -> NX      : Reintenta petición original\ncon nuevo accessToken
+NX --> FE     : 200 datos solicitados
+FE --> U      : Muestra datos sin interrumpir sesión
+
+== Cierre de Sesión ==
+
+U -> FE       : Presiona "Salir"
+FE -> NX      : POST /api/v1/auth/logout\nAuthorization: Bearer <accessToken>
+NX -> AC      : Forwarda
+AC -> AS      : logout(token)
+AS -> AS      : Log INFO (blacklist en Redis\npara producción)
+AC --> FE     : 204 No Content
+FE -> FE      : localStorage.clear()
+FE --> U      : redirect → /login
+
+@enduml
