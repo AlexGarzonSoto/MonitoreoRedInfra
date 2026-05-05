@@ -114,7 +114,7 @@ Este comando hace dos cosas automáticamente:
 make iniciar
 ```
 
-**La primera vez** este proceso descarga los componentes necesarios de internet. Dependiendo de tu conexión puede tardar entre 3 y 10 minutos. Las veces siguientes será mucho más rápido (menos de 1 minuto).
+**La primera vez** este proceso descarga las imágenes pre-construidas desde Docker Hub. Dependiendo de tu conexión puede tardar entre 2 y 5 minutos. Las veces siguientes será mucho más rápido (menos de 1 minuto).
 
 Verás muchas líneas de texto pasando — eso es normal. Cuando termine verás:
 

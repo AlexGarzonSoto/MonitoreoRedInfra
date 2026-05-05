@@ -98,11 +98,11 @@ vim .env
 ## ▶️ Paso 3 — Levantar los servicios
 
 ```bash
-# Primera vez: construir imágenes y arrancar
-docker compose up -d --build
+# Arrancar usando imágenes de Docker Hub (recomendado)
+make iniciar
 
-# Veces siguientes (imágenes ya construidas)
-docker compose up -d
+# Solo si modificaste el código fuente y quieres recompilar
+make construir
 
 # Monitorear el arranque
 docker compose logs -f
