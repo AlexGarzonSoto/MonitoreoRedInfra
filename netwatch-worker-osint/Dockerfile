@@ -21,7 +21,9 @@ RUN java -Djarmode=layertools \
     --destination netwatch-worker-osint/layers
 
 # ── Etapa 2: Imagen final ───────────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine3.21
+
+RUN apk upgrade --no-cache
 
 RUN addgroup -S netwatch && adduser -S netwatch -G netwatch
 

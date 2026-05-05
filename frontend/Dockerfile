@@ -13,6 +13,8 @@ RUN npm run build
 # ── Etapa 2: Servidor Nginx ─────────────────────────────────────────────────
 FROM nginx:1.25-alpine
 
+RUN apk upgrade --no-cache
+
 # Eliminar configuración por defecto
 RUN rm /etc/nginx/conf.d/default.conf
 

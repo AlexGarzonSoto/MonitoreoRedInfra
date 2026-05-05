@@ -25,10 +25,9 @@ RUN java -Djarmode=layertools \
 #   network_mode: host
 #   cap_add: [NET_ADMIN, NET_RAW]
 # para que Pcap4J pueda abrir la interfaz de red en modo promiscuo.
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine3.21
 
-# libpcap: biblioteca nativa que usa Pcap4J por debajo (misma que tcpdump)
-RUN apk add --no-cache libpcap
+RUN apk upgrade --no-cache && apk add --no-cache libpcap
 
 RUN addgroup -S netwatch && adduser -S netwatch -G netwatch
 

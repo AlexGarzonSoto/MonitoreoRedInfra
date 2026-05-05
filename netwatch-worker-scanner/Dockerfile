@@ -22,10 +22,9 @@ RUN java -Djarmode=layertools \
     --destination netwatch-worker-scanner/layers
 
 # ── Imagen final ──────────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine3.21
 
-# Nmap necesario para escaneo de puertos y detección de servicios
-RUN apk add --no-cache nmap nmap-scripts
+RUN apk upgrade --no-cache && apk add --no-cache nmap nmap-scripts
 
 RUN addgroup -S netwatch && adduser -S netwatch -G netwatch
 WORKDIR /app

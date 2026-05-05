@@ -25,7 +25,9 @@ RUN java -Djarmode=layertools \
     --destination netwatch-api-gateway/layers
 
 # ── Etapa 2: Imagen final mínima ────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine3.21
+
+RUN apk upgrade --no-cache
 
 # Usuario no-root
 RUN addgroup -S netwatch && adduser -S netwatch -G netwatch
