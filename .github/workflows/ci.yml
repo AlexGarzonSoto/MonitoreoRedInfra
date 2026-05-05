@@ -250,12 +250,12 @@ jobs:
           CAPTURE_ENABLED=true
           SCANNER_DRY_RUN=true
           GRAFANA_PASSWORD=testpassword123
-          DOCKERHUB_USERNAME=ci
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
           EOF
 
       - name: Levantar entorno de staging
         run: |
-          docker compose up -d postgres rabbitmq valkey api-gateway
+          docker compose up -d --build postgres rabbitmq valkey api-gateway
           timeout 120 bash -c \
             'until curl -sf http://localhost:8080/actuator/health; do sleep 5; done'
 

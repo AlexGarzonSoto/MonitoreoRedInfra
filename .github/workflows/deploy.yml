@@ -90,3 +90,31 @@ jobs:
           push:    true
           tags:    ${{ steps.meta.outputs.tags }}
           labels:  ${{ steps.meta.outputs.labels }}
+
+  # ── Actualizar overview (README) en cada repositorio de Docker Hub ────────
+  update-dockerhub-overview:
+    name: Overview Docker Hub — ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    needs: [publish, publish-frontend]
+    strategy:
+      fail-fast: false
+      matrix:
+        repo:
+          - netwatch-api-gateway
+          - netwatch-worker-capture
+          - netwatch-worker-analysis
+          - netwatch-worker-alerts
+          - netwatch-worker-osint
+          - netwatch-worker-scanner
+          - netwatch-frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Actualizar README en Docker Hub
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username:        ${{ secrets.DOCKERHUB_USERNAME }}
+          password:        ${{ secrets.DOCKERHUB_TOKEN }}
+          repository:      ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.repo }}
+          readme-filepath: README.md
